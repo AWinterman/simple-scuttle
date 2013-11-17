@@ -1,4 +1,4 @@
-var Gossip = require('../gossip')
+var Gossip = require('../lib/gossip')
   , test = require('tape')
   , Stream = require('stream')
 

@@ -1,4 +1,4 @@
-var Digest = require('../digest')
+var Digest = require('../lib/digest')
   , test = require('tape')
 
 test('test setter method', function(assert) {

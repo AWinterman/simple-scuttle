@@ -1,15 +1,14 @@
-var test = require('tape')
-  , History = require('../history')
+var History = require('../lib/history')
+  , test = require('tape')
 
 test('writes correctly', function(assert) {
-  var hist = new History(3, 100)
+  var hist = new History(3, 100, order)
 
   var expected = [
       {version: 0, source_id: 'A'}
     , {version: 0, source_id: 'Z'}
     , {version: 1, source_id: 'B'}
   ].map(function(d) {
-    d.update = true
     d.key = 0
     d.value = Infinity
 
@@ -28,7 +27,6 @@ test('writes correctly', function(assert) {
   expected.push({
       version: 2
     , source_id: 'C'
-    , update: true
     , key: 0
     , value: Infinity
   })
@@ -39,7 +37,7 @@ test('writes correctly', function(assert) {
 })
 
 test('newses correctly', function(assert) {
-  var hist = new History(10, 10)
+  var hist = new History(10, 10, order)
 
   var _ = 0
 
@@ -51,11 +49,11 @@ test('newses correctly', function(assert) {
 
   var expected = [
       [
-          {version: 1, source_id: 'A', key: _, value: _, update: true}
-        , {version: 2, source_id: 'A', key: _, value: _, update: true}
+          {version: 1, source_id: 'A', key: _, value: _}
+        , {version: 2, source_id: 'A', key: _, value: _}
       ]
     , [
-          {version: 4, source_id: 'B', key: _, value: _, update: true}
+          {version: 4, source_id: 'B', key: _, value: _}
       ]
   ]
 
@@ -67,7 +65,7 @@ test('newses correctly', function(assert) {
 })
 
 test('`update` events fire as expected', function(assert) {
-  var hist = new History(5, 10)
+  var hist = new History(5, 10, order)
     , _ = 0
 
   var expected = {
@@ -75,7 +73,6 @@ test('`update` events fire as expected', function(assert) {
     , key: _
     , source_id: _
     , value: _
-    , update: true
   }
 
   hist.on('update', function(update) {
@@ -86,4 +83,13 @@ test('`update` events fire as expected', function(assert) {
   hist.write(_, _, _, _)
 
 })
+
+
+function order(A, B) {
+  if(A.version === B.version) {
+    return A.source_id < B.source_id
+  }
+  return A.version < B.version
+}
+
 

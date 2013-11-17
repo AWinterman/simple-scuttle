@@ -4,12 +4,13 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "tap test/"
   },
   "author": "Andrew Winterman",
   "license": "MIT",
   "devDependencies": {
     "through": "~2.3.4",
-    "tape": "~2.1.0"
+    "tape": "~2.1.0",
+    "tap": "~0.4.4"
   }
 }
