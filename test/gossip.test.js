@@ -1,139 +1,145 @@
 var Gossip = require('../gossip')
   , test = require('tape')
+  , Stream = require('stream')
 
-test('Integration test via readable calls', function(assert) {
-  var A = new Gossip('A')
+test('Integration test via readable calls', readable)
+test('can pipe together', can_pipe)
+
+function readable(assert) {
+  var A = new Gossip('#A')
 
   // always ask for just the newest data.
-  var writes = [
+  var local_updates = [
       {key: 'greeting', value: 'hello'}
-    , {version: 0, id: 'tester', digest: true}
     , {key: 'name', value: 'Doctor'}
-    , {version: 1, id: 'tester', digest: true}
     , {key: 'name', value: 'Who'}
-    , {version: 2, id: 'tester', digest: true}
-    , {} // anything which has neither key nor digest causes the receiver to send
-         // digest. false would also work here.
     , {key: 'name', value: 'Just'}
-    , {key: 'name', value: 'Return'}
-    , {key: 'name', value: 'Barry'}
-    , {version: 4, id: 'tester', digest: true}
   ]
 
-  var greet_value = ['hello', 'hello', 'hello']
-    , is_digests = [false, false, false, false]
-    , name_value = [null, 'Doctor', 'Who']
-    , name_version = [-Infinity, 2, 3]
-    , greet_version = [1, 1, 1]
-    , versions = [1, 2, 3]
-    , value = ['hello', 'Doctor', 'Who', 'Barry']
+  var peer_updates = [
+      {key: 'name', value: 'Return', source_id: 'peer', version: 24}
+    , {key: 'name', value: 'Barry', source_id: 'peer', version: 25}
+  ]
+
+  var writes = local_updates.concat(peer_updates)
+
+  assert.plan(writes.length)
 
   var counter = 0
 
-  A.on('readable', function() {
-    var data = A.read()
+  var onreadable = verify.bind(A, writes.slice())
 
-    assert.strictEqual(data.value, value[counter])
+  A.on('readable', onreadable)
 
-    // responds with a digest when it should
-    assert.strictEqual(!!data.digest, !!is_digests[counter])
+  function verify(writes) {
+    var copy = writes.slice()
 
-  })
+    var result = A.read()
 
-  A.on('readable', function() {
-    if(counter >= 3) {
+    if(counter === writes.length) {
+      return A.end()
+    }
+
+    var expected = copy[counter]
+
+    if(!expected.version) {
+      expected.version = counter + 1
+    }
+
+    assert.deepEqual(result, expected, 'i-th write comes out')
+    counter++
+  }
+
+  var repeat_id = setInterval(next, 20)
+    , second
+    , start
+
+  function next() {
+    if(start) {
+      start = false
+      A.write(
+          {'source_id': '#A', version: -Infinity, digest: true, done: true}
+      )
+
       return
     }
 
-    assert.strictEqual(A.version, versions[counter])
-    assert.strictEqual(A.get('greeting').value, greet_value[counter])
-    assert.strictEqual(A.get('greeting').version, greet_version[counter])
+    if(second) {
+      second = false
+      A.write(
+          {'source_id': 'peer', version: -Infinity, digest: true, done: true}
+      )
 
-    assert.strictEqual(A.get('name').value, name_value[counter])
-    assert.strictEqual(A.get('name').version, name_version[counter])
-  })
+      return
+    }
 
-  A.on('readable', function() {
-    counter++
-  })
-
-  A.on('end', function() {
-    assert.ok(counter)
-  })
-
-  var repeat_id = setInterval(next, 20)
-
-  function next() {
     if(!writes.length) {
-      A.end()
 
       clearInterval(repeat_id)
-      return assert.end()
+
+      return
     }
 
     A.write(writes.shift())
+
+    if(writes.length === 2) {
+      start = true
+    }
+
+    if(writes.length === 0) {
+      second = true
+    }
   }
-})
+}
 
+function can_pipe(assert) {
+  assert.plan(5)
 
-test('Can pipe gossipers together appropriately', function(assert) {
-  var Stream = require('stream')
+  var A = new Gossip('#A')
+    , B = new Gossip('#B')
+    , C = new Gossip('#B')
 
-  var C = new Gossip('C')
-    , D = new Gossip('D')
-    , E = new Gossip('E')
+  var key = [1, 2, 3, 4]
+    , val = 'abcd'
+    , count = 0
 
-  var counter = 0
+  function verify() {
+    var expected = {
+        1: {value: 'a', version: 1}
+      , 2: {value: 'b', version: 1}
+      , 3: {value: 'c', version: 2}
+      , 4: {value: 'd', version: 2}
+    }
 
-  C.pipe(D).pipe(C)
-  D.pipe(E).pipe(D)
-
-
-  var report = new Stream.Writable({objectMode: true})
-
-  report._write = function(chunk, enc, cb) {
-    console.log(chunk)
-    cb && cb()
+    assert.deepEqual(C.state[1], expected[1])
+    assert.deepEqual(C.state[2], expected[2])
+    assert.deepEqual(C.state[3], expected[3])
+    assert.deepEqual(C.state[4], expected[4])
+    assert.strictEqual(count, 4)
   }
 
-  // C.pipe(report)
-  // D.pipe(report)
-  // E.pipe(report)
+  A.pipe(B).pipe(A)
+  B.pipe(C).pipe(B)
 
-  C.set('a', 1)
-  C.set('b', 2)
-  C.set('c', 3)
-
-  D.set('e', 3)
-  D.set('d', 3)
-
-
-  C.on('digest', function(dig) {
-    console.log('digest', dig)
-  })
-
-  setInterval(gossip, 1000)
+  var go = setInterval(gossip, 100)
 
   function gossip() {
-    console.log(counter)
-    console.log('C', C.state)
-    console.log('D', D.state)
-    console.log('E', E.state)
-
-    counter++
-
-    if(!(counter % 5)) {
-      console.log('set z on C')
-      C.set('z', 'GOODBYE ' + counter)
+    if(count % 2) {
+      A.set(key[count], val[count])
+    } else {
+      B.set(key[count], val[count])
     }
 
-    if(!(counter % 3)) {
-      console.log('set e on D')
-      D.set('e', 'HELLO! ' + counter)
+    count++
+
+    if(count === key.length) {
+      A.gossip()
+      B.gossip()
+      C.gossip()
+      verify()
+      clearInterval(go)
     }
 
-    C.start()
-    D.start()
-    E.start()
   }
-})
+
+}

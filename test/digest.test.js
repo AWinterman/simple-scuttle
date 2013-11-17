@@ -37,8 +37,14 @@ test('creates digest correctly', function(assert) {
       {source_id: 'A', version: 0, digest: true}
     , {source_id: 'B', version: 2, digest: true}
     , {source_id: 'C', version: 3, digest: true}
-    , {source_id: 'D', version: 1, digest: true, done: true}
+    , {source_id: 'D', version: 1, digest: true}
   ]
+
+  for(var i = 0, len = result.length; i < len; ++i) {
+    if(result[i].done) {
+      expected[i].done = true
+    }
+  }
 
   assert.deepEqual(result, expected)
   assert.end()

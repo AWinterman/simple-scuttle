@@ -5,7 +5,7 @@ module.exports = History
 
 util.inherits(History, Stream.Duplex)
 
-function History(max_depth, mtu, order_ids) {
+function History(max_depth, mtu, sort) {
   var opts = {}
 
   opts.highWaterMarkd = mtu
@@ -13,21 +13,16 @@ function History(max_depth, mtu, order_ids) {
 
   Stream.Duplex.call(this, opts)
   this.max_depth = max_depth
-  this.order_ids = order_ids || order
+  this.sort = sort
 
   this.memory = []
   this.length = 0
-}
-
-function order(A, B) {
-  return A < B
 }
 
 History.prototype.write = function(key, value, source_id, version) {
   // create a single object form it, and remember it.
   var update = {}
 
-  update.update = true
   update.key = key
   update.value = value
   update.source_id = source_id
@@ -55,7 +50,7 @@ History.prototype.order = function(arr) {
   return arr.sort(sort)
 
   function sort(A, B) {
-    return A.version - B.version || self.order_ids(A.id, B.id)
+    return self.sort(A, B) ? -1 : 1
   }
 }
 

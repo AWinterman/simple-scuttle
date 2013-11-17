@@ -5,12 +5,7 @@ function Digest(id) {
   this.id = id
 }
 
-var cons = Digest
-  , proto = cons.prototype
-
-proto.constructor = proto
-
-proto.create = function() {
+Digest.prototype.create = function() {
   return Object.keys(this.state).sort(randomize).map(emit, this)
 }
 
@@ -32,7 +27,7 @@ function emit(key, index, array) {
   return data
 }
 
-proto.set = function(source_id, version) {
+Digest.prototype.set = function(source_id, version) {
   if(!this.state.hasOwnProperty(source_id) && source_id in this.state) {
     throw new Error('Cannot override prototypal properties')
   }
@@ -46,7 +41,7 @@ proto.set = function(source_id, version) {
   }
 }
 
-proto.get = function(source_id) {
+Digest.prototype.get = function(source_id) {
   if(this.state.hasOwnProperty(source_id)) {
     return this.state[source_id]
   }
