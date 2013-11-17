@@ -1,4 +1,4 @@
-# Simple-Scuttle #
+#Simple-Scuttle#
 
 This was inspired by [Dominic Tarr's scuttlebut
 module](https://npmjs.org/package/scuttlebutt), which, though totally awesome,
