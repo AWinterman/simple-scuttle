@@ -1,14 +1,12 @@
-# Plan of attack
+# Simple-Scuttle #
 
-## Digest Stream
-1. A stream that takes a digest and updates its internal state on write.
-2. On read, it simply emits its state.
+This was inspired by [Dominic Tarr's scuttlebut
+module](https://npmjs.org/package/scuttlebutt), which, though totally awesome,
+I found a little hard to parse. So in order to understand [the
+paper](http://www.cs.cornell.edu/home/rvr/papers/flowgossip.pdf), I wrote my
+own.
 
-## Exchanger
-1. A function that connects two digest streams together.
-2. It will handle the exchange of digests between the two.
-
-## StateStream
-1. On write, update any intenral keys with the new information.
-2. On read, call Exchanger, and then do whatever scuttlebut needs
+The goal has been fidelity to the paper. This is still in alpha-- API changes
+are coming, soon. Hence the lack of documentation. I did however, try to write
+in a very readable style.
 
