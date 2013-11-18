@@ -76,7 +76,7 @@ that once a new key is added, there is currently no way to delete it appart
 from calling `delete Gossip.state[key]` at every node, and then handling
 `digest` objects asking for `key` appropriately. This is unsafe-- I'd
 avoid designing a system in which the number of keys can grow without bound.
-Implementing a safe delete method remains a [To Do][todo]
+Implementing a safe delete method remains a [To Do](#todo)
 
 The other kind of object, the delta, is an object that appears like the
 following:
@@ -92,8 +92,10 @@ var delta = {
 ```
 
 This says: "source `source_id` thought `key` mapped to `value` at `version`."
-There is still some ambiguity here about when to apply this update, and indeed,
-[npm.im/scuttlebutt] leaves this specification to the client.
+There is still some ambiguity here about when to apply this update to the local
+state, and indeed, [npm.im/scuttlebutt][] leaves this specification to the
+client. At current, the update is always applied, so long as `version` is
+greater than the current version for the key.
 
 ## Methods ##
 
@@ -126,12 +128,13 @@ information on the shape of the objects.
 ###`Gossip.state`###
 As specified in the [paper][], state is a
 key-value map (modeled as a native javascript object), available in the
-`.state` attribute of a `Gossip` instance.
+`.state` attribute of a `Gossip` instance. Each key maps to a value and a
+version number, so `state[key]` -> `{version: version, value: value}`
 
 ###`Gossip.version`###
 
 The highest version number the `Gossip` instance has seen. This is proportional
-to the number of local updates made to this instance.
+to the number of updates made to this instance.
 
 ###`Gossip.history`###
 
