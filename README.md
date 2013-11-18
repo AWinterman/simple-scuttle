@@ -102,7 +102,7 @@ methods.
 
 ####`Gossip.history.write(key, value, source_id, version)`####
 
-Returns a [`delta`](#&delta;)
+Returns a [`delta`](#%CE%B4)
 
 Write a new delta to the history. The delta is recorded into
 `Gossip.history.memory`, an array of deltas, which is then sorted via `sort`
@@ -110,7 +110,7 @@ argument to the `Gossip` constructor. Next An `update` event is emitted with
 the delta as its argument, which allows the client to take action prior to
 pruning the `memory` array to `max_history`'s length.
 
-####`Gossip.history.news(id, version)` -> [Array Deltas](#&delta;)####
+####`Gossip.history.news(id, version)` -> [Array Deltas](#%CE%B4)####
 
 Returns an array of `delta`s which came from a source with unique identifier
 matching `id`, and which occurred after `version`.
