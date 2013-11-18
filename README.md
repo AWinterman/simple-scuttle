@@ -1,10 +1,10 @@
 #Simple-Scuttle#
 
+Replicate state across a network with the scuttlebutt protocol.
+
 **SIMPLE-SCUTTLE IS STILL IN ALPHA**
 
 See [the To Do section](#todo) for outstanding tasks.
-
-Replicate state across a network with the scuttlebutt protocol.
 
 I recommend you at least skim the [paper][] which describes the
 protocol before continuing too much further.
