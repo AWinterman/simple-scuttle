@@ -11,7 +11,7 @@ protocol before continuing too much further.
 
 ## Overview ##
 
-Simple-Scuttle implements exports a class - soit `Gossip` - whose instances are
+Simple-Scuttle exports a class - soit `Gossip` - whose instances are
 transform streams in objectMode. This stream maintains several data structures
 with which it manages state (see [`Gossip.state`](#gossipstate)) and the
 propagation of state changes (implemented with [`Gossip.digest`](#gossipdigest) and
@@ -21,8 +21,6 @@ Rather than implementing several parallel streams, `Gossip` instances choose
 logical branches based on the semantics of the objects written to them--  the
 shape of inputs to the stream determine the resulting action.  These are
 documented in the [Expected Objects](#expected-objects) section.
-
-## Example##
 
 # API #
 
@@ -64,21 +62,21 @@ if(no_more_digests) {
 }
 ```
 
-The assumption is that a digest object is sent from one node (the node
-specified by `source_id`) to another, and specifies what information the
-receiver should send back to the sender (all deltas the receiver has seen for
-the specified source node, with version number greater than `digest.version`).
-Upon receiving a digest, a the receiver queues all such deltas into its
-Readable buffer.
+The assumption is that a digest object is sent from one node  to another, and
+specifies what information the receiver should send back to the sender (all
+deltas the receiver has seen for the specified source node, with version
+number greater than `digest.version`). Upon receiving a digest, the
+receiver queues all such deltas into its Readable buffer.
 
-If `!!digest.done` is true, then the receiver will also send back delta on
-any peers it knows about that the sender did not mention since the last time an
+If `!!digest.done` is true, then the receiver will also send back delta on any
+peers it knows about that the sender did not mention since the last time an
 object  satisfying `obj.done && obj.digest` was written to the stream. This
-permits us to dynamically grow the state over time. Note that once a new key is
-added, there is currently no way to delete it appart from calling `delete 
-Gossip.state[key]` at every node. This is unsafe-- I'd avoid designing a system
-in which the number of keys can grow without bound. Safe deletes is a [To
-Do][todo]
+permits the number of keys in the state to dynamically grow over time. Note
+that once a new key is added, there is currently no way to delete it appart
+from calling `delete Gossip.state[key]` at every node, and then handling
+`digest` objects asking for `key` appropriately. This is unsafe-- I'd
+avoid designing a system in which the number of keys can grow without bound.
+Implementing a safe delete method remains a [To Do][todo]
 
 The other kind of object, the delta, is an object that appears like the
 following:
@@ -93,6 +91,9 @@ var delta = {
 }
 ```
 
+This says: "source `source_id` thought `key` mapped to `value` at `version`."
+There is still some ambiguity here about when to apply this update, and indeed,
+[npm.im/scuttlebutt] leaves this specification to the client.
 
 ## Methods ##
 
@@ -201,6 +202,7 @@ format and language (javascript rather than maths).
 `.sort(fn)`-ed, or a custom implementation, such as [this
 one][cross-filter-sort].
 - Find a way to do safe deletes.
+- Make sure updates are applied only when they should be.
 
 [npm.im/scuttlebutt]: https://npmjs.org/package/scuttlebutt
 [paper]: http://www.cs.cornell.edu/home/rvr/papers/flowgossip.pdf
