@@ -1,8 +1,8 @@
-var Digest = require('../lib/digest')
+var Clock = require('../lib/clock')
   , test = require('tape')
 
 test('test setter method', function(assert) {
-  var d = new Digest('B')
+  var d = new Clock('B')
 
   d.set('A', 2)
   d.set('A', 1)
@@ -12,7 +12,7 @@ test('test setter method', function(assert) {
   d.set('B', 3)
 
   // direct access :\
-  assert.strictEqual(d.state.A, 2)
+  assert.strictEqual(d.clock.A, 2)
 
   assert.strictEqual(d.get('B'), 3)
   assert.strictEqual(d.get('A'), 2)
@@ -20,9 +20,9 @@ test('test setter method', function(assert) {
 })
 
 test('creates digest correctly', function(assert) {
-  var d = new Digest('A')
+  var d = new Clock('A')
 
-  d.state = {
+  d.clock = {
       'A': 0
     , 'B': 2
     , 'C': 3

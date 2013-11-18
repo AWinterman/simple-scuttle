@@ -46,6 +46,54 @@ Gossip(
   return value indicates whether its first argument should take primacy.
   Defaults to sort by version and breaking ties with lexical ordering of IDs.
 
+## Expected Objects ##
+
+Gossip instances expect objects written to them (with `gossip.write`) to either be `digest`s or `delta`s.
+
+Digests look like: 
+
+```js
+var digest = {
+    digest: true
+  , source_id: source_id
+  , version: last_seen_version_for_source_id
+}
+
+if(no_more_digests) {
+  digest.done = true
+}
+```
+
+The assumption is that a digest object is sent from one node (the node
+specified by `source_id`) to another, and specifies what information the
+receiver should send back to the sender (all deltas the receiver has seen for
+the specified source node, with version number greater than `digest.version`).
+Upon receiving a digest, a the receiver queues all such deltas into its
+Readable buffer.
+
+If `!!digest.done` is true, then the receiver will also send back delta on
+any peers it knows about that the sender did not mention since the last time an
+object  satisfying `obj.done && obj.digest` was written to the stream. This
+permits us to dynamically grow the state over time. Note that once a new key is
+added, there is currently no way to delete it appart from calling `delete 
+Gossip.state[key]` at every node. This is unsafe-- I'd avoid designing a system
+in which the number of keys can grow without bound. Safe deletes is a [To
+Do][todo]
+
+The other kind of object, the delta, is an object that appears like the
+following:
+
+```js
+
+var delta = {
+    key: any_obj_which_can_be_a_key
+  , value: some_serializable_value 
+  , source_id: source_id
+  , version: version_number_for_this_update
+}
+```
+
+
 ## Methods ##
 
 `Gossip` instances are [Transform
@@ -68,19 +116,9 @@ A method  which provides convenient lookup for arbitrary keys. If
 ###`Gossip.gossip() -> undefined`###
 
 Causes `Gossip` to queue a randomly sorted set of `digest` objects into its
-Readable buffer. These are a series of objects:
-
-```js
-var delta = {
-    digest: true
-  , source_id: id
-  , version: int version
-}
-```
-
-except for the last one which has an additional attribute, `delta.done = true`.
-If another `Gossip` stream reads these, it will respond with a series of
-`delta` objects. See [Expected Object](#expected-objects) for more information.
+Readable buffer. If another `Gossip` stream reads these, it will respond
+with a series of `delta` objects. See [Expected Object](#expected-objects) for
+information on the shape of the objects.
 
 ## Attributes ##
 
@@ -102,8 +140,6 @@ methods.
 
 ####`Gossip.history.write(key, value, source_id, version)`####
 
-Returns a [`delta`](#%CE%B4)
-
 Write a new delta to the history. The delta is recorded into
 `Gossip.history.memory`, an array of deltas, which is then sorted via `sort`
 argument to the `Gossip` constructor. Next An `update` event is emitted with
@@ -119,50 +155,30 @@ matching `id`, and which occurred after `version`.
 
 A [vector clock][vector-clocks-hard] which keeps track of the maximum version
 number this `Gossip` instance has seen from each of its peers. `Gossip.digest`
-also provides a method for requesting data from 
+also provides a for constructing a `digest` objects as specified in [Expected
+Objects](#expected-objects)
 
-## Expected Objects ##
+For a paper defining vector clocks, see [here][vector-clock-paper]
 
-##`digest`##
- It expects objects 
-written to it to either be `digest`s or `delta`s. Digests look like: 
 
-```js
-var digest = {
-    digest: true
-  , source_id: source_id
-  , version: last_seen_version_for_source_id
-}
+####`Gossip.digest.clock`####
 
-if(no_more_digests) {
-  digest.done = true
-}
-```
+The vector clock itself-- a map from `source_ids` to version numbers, keeping
+track of the last update this `Gossip` instance has seen from any of its peers.
 
-The assumption is that a digest object is sent from one node (the node
-specified by `source_id`) to another, and specifies what information the
-receiver should send back to the sender (all delta the receiver has seen for
-the specified source node, with version number greater than `digest.version`)
+####`Gossip.digest.get(id)` -> `Integer version'####
 
-If `!!digest.done` is true, then the receiver will also send back delta on
-any peers it knows about that the sender did not mention since the last time an
-object  satisfying `obj.done && obj.digest` was written to the stream. This
-permits us to dynamically grow the state over time. Note that once a new key is
-added, there is no safe way to delete it.
+Returns the version number for the specified `id`, or `-Infinity` if it cannot be
+found.
 
-## &delta; ##
-The other kind of object, the delta, is an object that appears like the
-following:
+####`Gossip.digest.set(source, version)`####
 
-```js
+Sets the specified `source` to the specified `version` number in the
+`Gossip.digest.clock` object.
 
-var delta = {
-    key: any_obj_which_can_be_a_key
-  , value: some_serializable_value 
-  , source_id: source_id
-  , version: version_number_for_this_update
-}
-```
+####`Gossip.digest.create()`####
+
+Return a randomly ordered array of `digest` stream objects for each `source` in th clock. See [Expected Objects][#expected-objects].
 
 # Relation to [npm.im/scuttlebutt][] #
 
@@ -184,9 +200,11 @@ format and language (javascript rather than maths).
 - Investigate whether history's memory attribute should be an array that is
 `.sort(fn)`-ed, or a custom implementation, such as [this
 one][cross-filter-sort].
+- Find a way to do safe deletes.
 
 [npm.im/scuttlebutt]: https://npmjs.org/package/scuttlebutt
 [paper]: http://www.cs.cornell.edu/home/rvr/papers/flowgossip.pdf
 [vector-clocks-hard]: http://basho.com/why-vector-clocks-are-hard/
 [cross-filter-sort]: https://github.com/square/crossfilter/blob/master/src/quicksort.js
+[vector-clock-paper]: http://research.microsoft.com/en-us/um/people/lamport/pubs/time-clocks.pdf
 
