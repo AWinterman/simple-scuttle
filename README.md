@@ -4,6 +4,9 @@ Replicate state across a network with the scuttlebutt protocol.
 
 **SIMPLE-SCUTTLE IS STILL IN ALPHA**
 
+[![Build
+Status](https://travis-ci.org/AWinterman/simple-scuttle.png?branch=master)](https://travis-ci.org/AWinterman/simple-scuttle)
+
 See [the To Do section](#todo) for outstanding tasks.
 
 I recommend you at least skim the [paper][] which describes the
