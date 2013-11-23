@@ -2,7 +2,7 @@
 
 Replicate state across a network with the scuttlebutt protocol.
 
-**SIMPLE-SCUTTLE IS STILL IN ALPHA**
+**SIMPLE-SCUTTLE IS IN BETA**
 
 [![Build
 Status](https://travis-ci.org/AWinterman/simple-scuttle.png?branch=master)](https://travis-ci.org/AWinterman/simple-scuttle)
