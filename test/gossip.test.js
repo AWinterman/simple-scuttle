@@ -1,6 +1,5 @@
 var Gossip = require('../lib/gossip')
   , test = require('tape')
-  , Stream = require('stream')
 
 test('Integration test via readable calls', readable)
 test('can pipe together', can_pipe)
@@ -110,6 +109,8 @@ function can_pipe(assert) {
       , 3: {value: 'c', version: 2}
       , 4: {value: 'd', version: 2}
     }
+
+    console.log(C.state)
 
     assert.deepEqual(C.state[1], expected[1])
     assert.deepEqual(C.state[2], expected[2])

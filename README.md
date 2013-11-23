@@ -11,11 +11,11 @@ protocol before continuing too much further.
 
 ## Overview ##
 
-Simple-Scuttle exports a class - soit `Gossip` - whose instances are
-transform streams in objectMode. This stream maintains several data structures
-with which it manages state (see [`Gossip.state`](#gossipstate)) and the
-propagation of state changes (implemented with [`Gossip.digest`](#gossipdigest) and
-[`Gossip.history`](#gossiphistory)).
+Simple-Scuttle exports a class - soit `Gossip` - whose instances are transform
+streams in objectMode. `Gossip` instances maintain several data structures with
+which they manages state (see [`Gossip.state`](#gossipstate)) and the
+propagation of state changes (implemented with [`Gossip.clock`](#gossipclock)
+    and [`Gossip.history`](#gossiphistory)).
 
 Rather than implementing several parallel streams, `Gossip` instances choose
 logical branches based on the semantics of the objects written to them--  the
@@ -29,26 +29,28 @@ documented in the [Expected Objects](#expected-objects) section.
 ```js
 Gossip(
     String id
-  , Integer mtu | false
-  , Integer max_history | false
-  , Function sort(Update A, Update B) -> Bool | false
+  , Integer mtu | null
+  , Integer max_history | null
+  , Function should_apply | null
+  , Function sort | null
 ) -> gossip
 ```
  
 - `id`: The unique identifier for each `Gossip` instance.  
 - `mtu`: How many messages the network can handle at once-- this is used to set
 [opts.highWaterMark](http://nodejs.org/api/stream.html#stream_new_stream_readable_options). Defaults to 10 if falsey.
-- `max_history`: How many deltas to store before we begin to forget old ones. Such concerns are absent from the paper, but they seem important to me. Defaults to 10 if falsey.
-- `sort`: A function which describes how to resolve
-  versioning ties between when two deltas disagree on a key-value pair. It's
-  return value indicates whether its first argument should take primacy.
-  Defaults to sort by version and breaking ties with lexical ordering of IDs.
+- `max_history`: How many updates to store before we begin to forget old ones. Such concerns are absent from the paper, but they seem important to me. Defaults to 10 if falsey.
+- `should_apply` `(gossip, update)` -> `Boolean`: A function which determines
+whether or not a given update should be applied.
+- `sort`: A function which describes how to order updates. Has the same
+signature as javascripts
+[Array.sort](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort), and will be called by Array.sort under the hood.
 
 ## Expected Objects ##
 
-Gossip instances expect objects written to them (with `gossip.write`) to either be `digest`s or `delta`s.
+Gossip instances expect objects written to them (with `gossip.write`) to either be `digest`s or `delta`s. Note that `delta`s are also referred to as `updates`.
 
-Digests look like: 
+####digests####
 
 ```js
 var digest = {
@@ -78,43 +80,43 @@ from calling `delete Gossip.state[key]` at every node, and then handling
 avoid designing a system in which the number of keys can grow without bound.
 Implementing a safe delete method remains a [To Do](#todo)
 
+####deltas####
 The other kind of object, the delta, is an object that appears like the
 following:
 
 ```js
 
 var delta = {
-    key: any_obj_which_can_be_a_key
-  , value: some_serializable_value 
-  , source_id: source_id
-  , version: version_number_for_this_update
+    key: 'age'
+  , value: 100
+  , source_id: '#A'
+  , version: 10
 }
 ```
 
 This says: "source `source_id` thought `key` mapped to `value` at `version`."
-There is still some ambiguity here about when to apply this update to the local
-state, and indeed, [npm.im/scuttlebutt][] leaves this specification to the
-client. At current, the update is always applied, so long as `version` is
-greater than the current version for the key.
+The `should_apply` argument allows the user to specify whether or not this
+update should be applied.
 
 ## Methods ##
 
 `Gossip` instances are [Transform
 Streams](http://nodejs.org/api/stream.html#stream_class_stream_transform_1), so
 they implement all of the methods and events as described in the node core
-documentation.
+documentation. In addition, there are a few methods specific to this purpose:
 
 ###`Gossip.set(key, value) -> null`###
 
 This method applies a local delta, simply setting the given key to the given
-value in the local instance, giving it the appropriate `version` number and
+value in the local instance, and tacking on the appropriate `version` number and
 `source_id`.
 
 ###`Gossip.get(key) -> {version: <version>, value: <obj>} `###
 
 A method  which provides convenient lookup for arbitrary keys. If
 `Gossip.state` has no entry for a given key, this method returns 
-`{version:  -Infinity, value: null}`.
+`{version:  -Infinity, value: null}`. Otherwise it returns `{version: version,
+  value: value}`
 
 ###`Gossip.gossip() -> undefined`###
 
@@ -133,24 +135,25 @@ version number, so `state[key]` -> `{version: version, value: value}`
 
 ###`Gossip.version`###
 
-The highest version number the `Gossip` instance has seen. This is proportional
-to the number of updates made to this instance.
+The highest version number the `Gossip` instance has seen (both locally and
+from other instances)
 
 ###`Gossip.history`###
 
-An object for keeping track of updates, and replaying updates from a given peer
-on demand. Updates are transmitted individually via the `Gossip`'s streaming
-methods.
+An object for keeping track of deltas, and replaying deltas from a given peer
+on demand. `delta` objects are transmitted individually via the `Gossip`'s
+streaming methods.
 
 ####`Gossip.history.write(key, value, source_id, version)`####
 
 Write a new delta to the history. The delta is recorded into
 `Gossip.history.memory`, an array of deltas, which is then sorted via `sort`
-argument to the `Gossip` constructor. Next An `update` event is emitted with
-the delta as its argument, which allows the client to take action prior to
-pruning the `memory` array to `max_history`'s length.
+argument to the `Gossip` constructor. Next `Gossip.history` emits an `"update"`
+event is emitted with the delta as its argument. This event is emitted to allow
+the client to take action prior to pruning the `memory` array to
+`max_history`'s length.
 
-####`Gossip.history.news(id, version)` -> [Array Deltas](#%CE%B4)####
+####`Gossip.history.news(id, version)` -> [`Array Deltas`](#deltas)####
 
 Returns an array of `delta`s which came from a source with unique identifier
 matching `id`, and which occurred after `version`.
@@ -165,47 +168,47 @@ Objects](#expected-objects)
 For a paper defining vector clocks, see [here][vector-clock-paper]
 
 
-####`Gossip.digest.clock`####
+####`Gossip.clock.clock`####
 
-The vector clock itself-- a map from `source_ids` to version numbers, keeping
+The vector clock-- a map from `source_ids` to version numbers, keeping
 track of the last update this `Gossip` instance has seen from any of its peers.
 
-####`Gossip.digest.get(id)` -> `Integer version'####
+####`Gossip.clock.get(id)` -> `Integer version'####
 
 Returns the version number for the specified `id`, or `-Infinity` if it cannot be
 found.
 
-####`Gossip.digest.set(source, version)`####
+####`Gossip.clock.set(source, version)`####
 
 Sets the specified `source` to the specified `version` number in the
-`Gossip.digest.clock` object.
+`Gossip.clock.clock` object.
 
-####`Gossip.digest.create()`####
+####`Gossip.clock.create()`####
 
 Return a randomly ordered array of `digest` stream objects for each `source` in th clock. See [Expected Objects][#expected-objects].
 
 # Relation to [npm.im/scuttlebutt][] #
 
-This was inspired by [Dominic Tarr's scuttlebut
-module][npm.im/scuttlebutt], which, though totally awesome,
-I found a little hard to parse. So in order to understand [the
-paper][paper] , I wrote my
-own module to implement the protocol. As such this module bears great fidelity
-to the paper-- many decision that [npm.im/scuttlebutt][] leave to the client
-are in fact specified in the paper that describes the protocol. Others, such as
-resolution of delta conflicts, are left to the user through to specify through
-function argument rather than subclassing. I intended to replicate terminology
-from the paper faithfully, subject of course to the restrictions imposed by the
-format and language (javascript rather than maths).
+This was inspired by [Dominic Tarr's scuttlebut module][npm.im/scuttlebutt],
+which, though totally awesome, I found a little hard to parse. So in order
+to understand [the paper][paper] , I wrote my own module to implement the
+protocol. As such this module bears great fidelity to the paper-- many
+decision that [npm.im/scuttlebutt][] leave to the client are in fact
+specified in the paper that describes the protocol. Others, such as
+resolution of delta conflicts, are left to the user to specify through
+function argument rather than subclassing. I intended to replicate
+terminology from the paper faithfully, subject of course to the
+restrictions imposed by the format and language (javascript rather than
+maths). The other difference is that this implementation does not
+require that the user specify a schema (the set of possible keys) prior to
+instantiating the `Gossip` object.
 
 # TODO: #
-- Make sure Gossip.version is updated if need be by applicaiton of external deltas.
 - A parent constructor to ensure uniquenes of id, uniformity of mtu, etc.
 - Investigate whether history's memory attribute should be an array that is
 `.sort(fn)`-ed, or a custom implementation, such as [this
 one][cross-filter-sort].
-- Find a way to do safe deletes.
-- Make sure updates are applied only when they should be.
+- Find a way to safely delete keys from the state.
 
 [npm.im/scuttlebutt]: https://npmjs.org/package/scuttlebutt
 [paper]: http://www.cs.cornell.edu/home/rvr/papers/flowgossip.pdf

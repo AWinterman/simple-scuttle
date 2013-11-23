@@ -1,8 +1,9 @@
 var History = require('../lib/history')
+  , base = require('../lib/base')
   , test = require('tape')
 
 test('writes correctly', function(assert) {
-  var hist = new History(3, 100, order)
+  var hist = new History(3, 100, base.sort)
 
   var expected = [
       {version: 0, source_id: 'A'}
@@ -19,7 +20,8 @@ test('writes correctly', function(assert) {
   hist.write(0, Infinity, 'B', 1)
   hist.write(0, Infinity, 'Z', 0)
 
-  assert.deepEqual(expected, hist.memory)
+
+  assert.deepEqual(hist.memory, expected)
 
   hist.write(0, Infinity, 'C', 2)
 
@@ -37,7 +39,7 @@ test('writes correctly', function(assert) {
 })
 
 test('newses correctly', function(assert) {
-  var hist = new History(10, 10, order)
+  var hist = new History(10, 10, base.sort)
 
   var _ = 0
 
@@ -65,7 +67,7 @@ test('newses correctly', function(assert) {
 })
 
 test('`update` events fire as expected', function(assert) {
-  var hist = new History(5, 10, order)
+  var hist = new History(5, 10, base.sort)
     , _ = 0
 
   var expected = {
@@ -81,15 +83,5 @@ test('`update` events fire as expected', function(assert) {
   })
 
   hist.write(_, _, _, _)
-
 })
-
-
-function order(A, B) {
-  if(A.version === B.version) {
-    return A.source_id < B.source_id
-  }
-  return A.version < B.version
-}
-
 
