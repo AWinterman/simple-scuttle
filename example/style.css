@@ -1,0 +1,26 @@
+svg {
+  left: 0;
+  top: 0;
+  height: 40em;
+  width: 80%;
+  margin-left: 10%;
+}
+
+svg line.link {
+  stroke-width: 1px;
+  stroke: black;
+}
+
+svg .node:hover {
+  font-size: 30px;
+  stroke: black;
+  stroke-width: 2px;
+}
+
+section p, section h1 {
+  margin-left: 10%;
+  width: 30em
+}
+
+
+

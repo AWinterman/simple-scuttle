@@ -1,0 +1,23 @@
+{
+  "name": "scuttle-example",
+  "version": "0.0.0",
+  "description": "An example of demoing the scuttlebut protocol",
+  "main": "index.js",
+  "dependencies": {
+    "sizzle": "~1.1.0",
+    "d3": "~3.3.10"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "make": "make"
+  },
+  "keywords": [
+    "Scuttlebutt",
+    "gossip",
+    "d3",
+    "demo"
+  ],
+  "author": "Andrew Winterman",
+  "license": "MIT"
+}
