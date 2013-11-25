@@ -2,7 +2,10 @@ PANDOC:=pandoc --write=html5 --read=markdown --standalone -c style.css  --sectio
 
 BROWSERIFY:=browserify -d main.js
 
-html/index.html: index.md html/bundle.js html/style.css
+html/:
+	mkdir html
+
+html/index.html: index.md html/bundle.js html/style.css html/
 	echo '<script type="text/javascript" src="./bundle.js" async></script>' > html/bundle.html
 	$(PANDOC) --include-in-header=html/bundle.html index.md > html/index.html
 	rm html/bundle.html
