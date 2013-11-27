@@ -25,6 +25,9 @@ logical branches based on the semantics of the objects written to them--  the
 shape of inputs to the stream determine the resulting action.  These are
 documented in the [Expected Objects](#expected-objects) section.
 
+Check out the [demo](http://awinterman.github.io/simple-scuttle/) if you are
+the more intuitive type.
+
 # API #
 
 ## Constructor ##
