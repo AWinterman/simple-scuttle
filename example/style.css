@@ -1,26 +1,66 @@
 svg {
-  left: 0;
-  top: 0;
-  height: 40em;
+  height: 30em;
   width: 80%;
   margin-left: 10%;
 }
 
 svg line.link {
   stroke-width: 1px;
-  stroke: black;
+  stroke: grey;
 }
 
 svg .node:hover {
-  font-size: 30px;
   stroke: black;
   stroke-width: 2px;
 }
 
-section p, section h1 {
-  margin-left: 10%;
-  width: 30em
+section {
+  margin-right: 1em;
+  margin-left: auto;
+  max-width: 33em;
+}
+
+div {
+  width: 50%;
+  left: 0;
+  position: fixed;
+}
+
+pre {
+  background-color: #f8f8f8;
+  border: 1px solid #ddd;
+  line-height: 19px;
+  overflow: auto;
+  padding: 6px 10px;
+  border-radius: 3px;
+  font-size: 0.9em
+}
+
+pre > code {
+  background: transparent;
+  border: 0;
 }
 
 
+code {
+  background-color: #f8f8f8;
+  border: 1px solid #ddd;
+  font-size: 0.9em;
+  padding: 0px 0.25em;
+}
 
+h2 {
+  margin-left: 1em;
+}
+
+section:last-child {
+  padding-bottom: 3em;
+}
+
+
+@media (max-width: 700px) {
+  div {
+    position: static;
+    width: 100%
+  }
+}

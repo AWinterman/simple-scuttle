@@ -1,5 +1,4 @@
 var Demo = require('./Demo')
-  , debounce = require('debounce')
 
 window.sizzle = require('sizzle')
 
@@ -27,34 +26,19 @@ function gossip_once() {
   /* i = (i+1) % demo.n */
   var i = Math.floor(Math.random() * demo.n)
 
-  nodes[i].__data__.gossip.gossip()
+  process.nextTick(function() {
+    nodes[i].__data__.gossip.gossip()
+  })
 }
-
-var stopped = false
-
-sizzle('[data-pause-play]')[0].addEventListener('click', function(ev) {
-  ev.preventDefault()
-
-  if(!stopped) {
-    demo.force.stop()
-    ev.target.textContent = 'play'
-    stopped = true
-
-    return
-  }
-
-  demo.force.alpha(1.0)
-  demo.force.start()
-  ev.target.textContent = 'pause'
-  stopped = false
-})
 
 function click() {
   var v = 0
 
   return function(ev) {
     v++
-    ev.target.__data__.gossip.set(ev.target.__data__.gossip.id, v)
+    process.nextTick(function() {
+      ev.target.__data__.gossip.set(ev.target.__data__.gossip.id, v)
+    })
   }
 
 }

@@ -13,9 +13,9 @@ function Demo(n) {
   for(var i = 0; i < n; ++i) {
     this.keys[i] = 'id-' + i
 
-    var gossip = Gossip(this.keys[i], 100, 1000)
+    var gossip = Gossip(this.keys[i], 10, 10)
 
-    gossip.on('state', this.onstate(i))
+    gossip.on('state', this.update.bind(this))
 
     nodes[i] = {gossip: gossip}
   }
@@ -41,15 +41,11 @@ function Demo(n) {
     nodes[i].gossip
       .pipe(nodes[before].gossip)
       .pipe(nodes[i].gossip)
-
   }
 
   this.force = d3.layout.force()
-    .linkDistance(100)
-    .charge(-1000)
     .nodes(nodes)
     .links(links)
-    .on('tick', this.tick.bind(this))
 
   this.line = d3.svg.line.radial()
 }
@@ -74,7 +70,10 @@ Demo.prototype.tick = function() {
 Demo.prototype.dim = function() {
   this.height = this.canvas[0][0].offsetHeight
   this.width = this.canvas[0][0].offsetWidth
-  this.force.size([this.width, this.height])
+  this.force
+      .size([this.width, this.height])
+      .linkDistance(this.width / 10)
+      .charge(-(this.width / 5))
 }
 
 Demo.prototype.start = function() {
@@ -83,6 +82,10 @@ Demo.prototype.start = function() {
 
   self.canvas = d3.select('svg')
   self.dim()
+
+  self.force
+    .charge(-1000)
+    .on('tick', this.tick.bind(this))
 
   self.link = self.canvas.selectAll('.link')
       .data(self.force.links())
@@ -111,33 +114,27 @@ Demo.prototype.update = function() {
   var self = this
 
   self.node.select('polygon')
+    .transition()
+    .duration(300)
+    .ease('quad')
     .attr('points', self.points.bind(self))
     .attr('fill', compose(lookup('gossip.version'), fill))
 }
 
 Demo.prototype.points = function(data) {
   var step = 2 * Math.PI / this.n
-
-  var points = []
-
-  var i = 0
+    , points = []
+    , i = 0
 
   while(i < this.n) {
     var val = data.gossip.get(this.keys[i]).value || 0
 
     points[i] = [(val + 1) * 5, i * step]
-    ++i
+
+    i += 1
   }
 
   return this.line(points).slice(1).split('L').join(' ')
-}
-
-Demo.prototype.onstate = function() {
-  var self = this
-
-  return function(state) {
-    self.update()
-  }
 }
 
 function lookup(str) {
