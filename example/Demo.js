@@ -63,14 +63,18 @@ Demo.prototype.tick = function() {
 }
 
 Demo.prototype.dim = function() {
-  this.height = this.canvas[0][0].offsetHeight
+  this.height = this.canvas[0][0].clientHeight
   this.width = this.canvas[0][0].clientWidth
-  console.log(this.width)
+
+  if(!this.height || !this.width) {
+    this.force.stop()
+    return this.canvas[0][0].classList.add('browser-error')
+  }
 
   this.force
       .size([this.width, this.height])
-      .linkDistance(200)
-      .charge(-(this.width / 5))
+      .linkDistance(100)
+      .charge(-(this.width) || -1000)
       .gravity(0.2)
 }
 
@@ -82,6 +86,11 @@ Demo.prototype.start = function() {
       .insert('div', ':first-child')
       .attr('class', 'graph')
       .append('svg')
+
+  d3.select('body').select('.graph')
+    .append('h3')
+    .attr('class', 'error-message')
+    .text("For best viewing, check this out in opera or chrome.")
 
   self.dim()
 

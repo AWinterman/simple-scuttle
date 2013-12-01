@@ -4,7 +4,7 @@
 
 *A [Scuttlebutt Gossip Protocols][scuttlebutt] with [d3 force directed layouts](https://github.com/mbostock/d3/wiki/Force-Layout) and node.js*
 
-Clicking on a <img src="./star.svg"></img> causes it to change its own
+Clicking on a star causes it to change its own
 state-- the length of each point of the star represents how many times it has
 been clicked. Each star propagates its state across the network via a
 [JavaScript implementation][simple-scuttle] of the [scuttlebutt gossip
@@ -89,8 +89,8 @@ B: [2, 3] -> B[k] = beta
 Now they gossip:
 
 ```
-A: [3, 3] -> (A: [3, 2] -> A[k] = alpha) + ( B: [3, 2] -> B[k] = beta)
-B: [3, 3] -> (A: [3, 2] -> A[k] = alpha) + ( B: [3, 2] -> B[k] = beta)
+A: [3, 3] -> (A: [3, 2] -> A[k] = alpha) + (B: [3, 2] -> B[k] = beta)
+B: [3, 3] -> (A: [3, 2] -> A[k] = alpha) + (B: [3, 2] -> B[k] = beta)
 ```
 
 Where `+` means resolve. But what is the value of this sum?

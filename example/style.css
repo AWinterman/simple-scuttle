@@ -1,32 +1,64 @@
 * {
   line-height: 1.4em;
   font-family: courier-new;
-  user-select: none;
 }
 
 body {
+  display: flex;
+  display: -webkit-box; 
+  display: -moz-box;    
+  display: -ms-flexbox; 
+  display: -webkit-flex;
+
+  flex-flow: row wrap;
+  align-items: stretch;
+  justify-content: space-between;
+  -webkit-box-align: stretch;
+  -webkit-box-pack: justify;
+  -webkit-flex-wrap: wrap;
+  -ms-flex-wrap: wrap;
+  flex-wrap: wrap;
+}
+
+@media all and (max-width: 600px) {
+  body {
+    -webkit-box-orient: vertical;
+  }
+}
+
+
+body > article {
   padding-bottom: 3em;
+  max-width: 35em;
+  min-width: 15em;
+  flex: 1 1 0;
+  -webkit-box-flex: 1 1 0;
+  -webkit-box-ordinal-group: 1
+  order: 1;
 }
 
-a {
-  color: steelblue;
-  font-weight: 900;
-  text-decoration: none;
+body > .graph {
+  -webkit-box-flex: 1 1 0;
+  -webkit-box-ordinal-group: 0
+  flex: 1 1 0;
+  order: 0;
+  height: 30em;
+  min-width: 30em;
+  transition: margin-top 0.2s
 }
 
-a:hover {
-  text-decoration: underline;
-  color: #7BA6B4;
+.browser-error {
+  display: none;
 }
 
-a:visited {
-  color: brown;
-  font-weight: 100;
+.error-message {
+  display: none;
 }
 
-a:hover:visited {
-  text-decoration: underline;
-  color: #7BA6B4;
+.browser-error ~ .error-message {
+  display: block;
+  margin-left: 5em;
+  margin-right: 1em;
 }
 
 .fps {
@@ -50,38 +82,50 @@ a:hover:visited {
   visibility: visible;
 }
 
-article {
-  margin-right: 1em;
-  margin-left: auto;
-  width: 55%;
-  max-width: 35em;
-  user-select: element;
+h1 {
+  font-size: 2em;
 }
 
-.graph {
-  margin-left: 1em;
-  margin-right: 36em;
-  position: fixed;
-  height: 100%;
-  width: 40%;
+h2 {
+  font-size: 1.5em;
+}
+
+a {
+  color: steelblue;
+  font-weight: 900;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+  color: #7BA6B4;
+}
+
+a:visited {
+  color: brown;
+  font-weight: 100;
+}
+
+a:hover:visited {
+  text-decoration: underline;
+  color: #7BA6B4;
 }
 
 pre {
   background-color: #f8f8f8;
   border: 1px solid #ddd;
-  line-height: 19px;
-  overflow: auto;
-  padding: 6px 10px;
+  overflow: visible;
   border-radius: 3px;
   font-size: 0.9em;
+  padding-left: 0.5em;
 }
 
 pre > code {
   background: transparent;
   border: 0;
   padding: 0px 0px;
+  white-space: pre-wrap;
 }
-
 
 code {
   font-family: courier, monospace;
@@ -89,31 +133,4 @@ code {
   border: 1px solid #ddd;
   font-size: 0.9em;
   padding: 0px 0.25em;
-}
-
-[src="star.svg"] {
-  transform: scale(0.25);
-  -webkit-transform: scale(0.5);
-  height: 2em;
-  width: 2em;
-  display: inline-block;
-  margin: -0.5em;
-  margin-bottom: -0.75em;
-}
-
-@media (max-width: 60em) {
-  div.graph {
-    position: static;
-    height: 30em;
-    width: 100%
-  }
-
-  article {
-    margin-left: 1em;
-    margin-right: auto;
-  }
-
-  .fps {
-    position: absolute;
-  }
 }

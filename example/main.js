@@ -26,18 +26,48 @@ window.sizzle = require('sizzle')
 
 var demo = new Demo(15)
 
-window.onresize = debounce(function() {
-  demo.dim()
-  demo.force.resume()
-})
+var fix = true
+  , display
 
 demo.start()
 demo.force.start()
 
-var nodes = demo.node[0]
+var graph = document.querySelector('.graph')
+  , nodes = demo.node[0]
+
+window.onload = function() {
+  var val = getComputedStyle(sizzle('body')[0]).display
+
+  if(val === 'flex') {
+    display = true
+  }
+
+  onresize()
+}
+
+window.onresize = debounce(onresize)
+
+function onresize() {
+  demo.dim()
+  demo.force.resume()
+  console.log(display)
+
+  if(document.body.clientWidth === graph.clientWidth) {
+    fix = false
+  } else {
+    fix = true && display
+  }
+}
+
+window.onscroll = function() {
+  if(fix) {
+    graph.style.marginTop = scrollY + 'px'
+  }
+}
 
 for(var i = 0, len = nodes.length; i < len; ++i) {
   nodes[i].onmousedown = click()
+  nodes[i].ontouchleave = click()
 }
 
 setInterval(gossip_once, 200)
