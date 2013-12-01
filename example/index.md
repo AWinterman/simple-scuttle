@@ -4,7 +4,7 @@
 
 *A [Scuttlebutt Gossip Protocols][scuttlebutt] with [d3 force directed layouts](https://github.com/mbostock/d3/wiki/Force-Layout) and node.js*
 
-Clicking on a <img src="star.svg"></img> causes it to change its own
+Clicking on a <img src="./star.svg"></img> causes it to change its own
 state-- the length of each point of the star represents how many times it has
 been clicked. Each star propagates its state across the network via a
 [JavaScript implementation][simple-scuttle] of the [scuttlebutt gossip
