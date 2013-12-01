@@ -6,7 +6,8 @@
   "dependencies": {
     "sizzle": "~1.1.0",
     "d3": "~3.3.10",
-    "debounce": "0.0.3"
+    "debounce": "0.0.3",
+    "fps": "0.0.3"
   },
   "devDependencies": {},
   "scripts": {

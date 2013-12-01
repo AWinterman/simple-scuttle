@@ -1,13 +1,35 @@
-var Demo = require('./Demo')
+var debounce = require('debounce')
+  , Demo = require('./Demo')
+  , fps = require('fps')
+
+var ticker = fps({
+    every: 25   // update every 10 frames
+})
+
+var fps_el = document.createElement('span')
+
+fps_el.className += 'fps'
+
+document.body.appendChild(fps_el);
+
+setInterval(function() {
+  ticker.tick()
+}, 1000 / 60)
+
+
+ticker.on('data', function(framerate) {
+  framerate = Math.round(framerate)
+  fps_el.innerHTML = 'fps: ' + framerate
+})
 
 window.sizzle = require('sizzle')
 
-var demo = new Demo(20)
+var demo = new Demo(15)
 
-window.onresize = function() {
+window.onresize = debounce(function() {
   demo.dim()
-  demo.force.start()
-}
+  demo.force.resume()
+})
 
 demo.start()
 demo.force.start()

@@ -1,29 +1,69 @@
-svg {
-  height: 30em;
-  width: 80%;
-  margin-left: 10%;
+* {
+  line-height: 1.4em;
+  font-family: courier-new;
+  user-select: none;
 }
 
-svg line.link {
-  stroke-width: 1px;
-  stroke: grey;
+body {
+  padding-bottom: 3em;
 }
 
-svg .node:hover {
-  stroke: black;
+a {
+  color: steelblue;
+  font-weight: 900;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+  color: #7BA6B4;
+}
+
+a:visited {
+  color: brown;
+  font-weight: 100;
+}
+
+a:hover:visited {
+  text-decoration: underline;
+  color: #7BA6B4;
+}
+
+.fps {
+  position: fixed;
+  left: 0px;
+  top: 0px;
+}
+
+.graph svg path.link {
   stroke-width: 2px;
+  stroke: grey;
+  fill: none;
 }
 
-section {
+.graph svg .node text.id {
+  visibility: hidden;
+  stroke: black;
+}
+
+.graph svg .node:hover text.id {
+  visibility: visible;
+}
+
+article {
   margin-right: 1em;
   margin-left: auto;
-  max-width: 33em;
+  width: 55%;
+  max-width: 35em;
+  user-select: element;
 }
 
-div {
-  width: 50%;
-  left: 0;
+.graph {
+  margin-left: 1em;
+  margin-right: 36em;
   position: fixed;
+  height: 100%;
+  width: 40%;
 }
 
 pre {
@@ -33,34 +73,47 @@ pre {
   overflow: auto;
   padding: 6px 10px;
   border-radius: 3px;
-  font-size: 0.9em
+  font-size: 0.9em;
 }
 
 pre > code {
   background: transparent;
   border: 0;
+  padding: 0px 0px;
 }
 
 
 code {
+  font-family: courier, monospace;
   background-color: #f8f8f8;
   border: 1px solid #ddd;
   font-size: 0.9em;
   padding: 0px 0.25em;
 }
 
-h2 {
-  margin-left: 1em;
+[src="star.svg"] {
+  transform: scale(0.25);
+  -webkit-transform: scale(0.5);
+  height: 2em;
+  width: 2em;
+  display: inline-block;
+  margin: -0.5em;
+  margin-bottom: -0.75em;
 }
 
-section:last-child {
-  padding-bottom: 3em;
-}
-
-
-@media (max-width: 700px) {
-  div {
+@media (max-width: 60em) {
+  div.graph {
     position: static;
+    height: 30em;
     width: 100%
+  }
+
+  article {
+    margin-left: 1em;
+    margin-right: auto;
+  }
+
+  .fps {
+    position: absolute;
   }
 }

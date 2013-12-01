@@ -9,6 +9,9 @@ Status](https://travis-ci.org/AWinterman/simple-scuttle.png?branch=master)](http
 
 See [the To Do section](#todo) for outstanding tasks.
 
+Check out the [demo](http://awinterman.github.io/simple-scuttle/) for some
+higher level discussions of this implementation.
+
 I recommend you at least skim the [paper][] which describes the
 protocol before continuing too much further.
 
@@ -18,15 +21,12 @@ Simple-Scuttle exports a class - soit `Gossip` - whose instances are transform
 streams in objectMode. `Gossip` instances maintain several data structures with
 which they manages state (see [`Gossip.state`](#gossipstate)) and the
 propagation of state changes (implemented with [`Gossip.clock`](#gossipclock)
-    and [`Gossip.history`](#gossiphistory)).
+and [`Gossip.history`](#gossiphistory)).
 
 Rather than implementing several parallel streams, `Gossip` instances choose
 logical branches based on the semantics of the objects written to them--  the
 shape of inputs to the stream determine the resulting action.  These are
 documented in the [Expected Objects](#expected-objects) section.
-
-Check out the [demo](http://awinterman.github.io/simple-scuttle/) if you are
-the more intuitive type.
 
 # API #
 
@@ -43,8 +43,9 @@ Gossip(
 ```
  
 - `id`: The unique identifier for each `Gossip` instance.  
-- `mtu`: How many messages the network can handle at once-- this is used to set
-[opts.highWaterMark](http://nodejs.org/api/stream.html#stream_new_stream_readable_options). Defaults to 10 if falsey.
+- `mtu`: Stands for Maximum Transmission Unit. Determines how many messages the
+network can handle at once-- this is used to set
+[opts.highWaterMark](http://nodejs.org/api/stream.html#stream_new_stream_readable_options). 
 - `max_history`: How many updates to store before we begin to forget old ones. Such concerns are absent from the paper, but they seem important to me. Defaults to 10 if falsey.
 - `should_apply` `(gossip, update)` -> `Boolean`: A function which determines
 whether or not a given update should be applied.
@@ -111,11 +112,13 @@ Streams](http://nodejs.org/api/stream.html#stream_class_stream_transform_1), so
 they implement all of the methods and events as described in the node core
 documentation. In addition, there are a few methods specific to this purpose:
 
-###`Gossip.set(key, value) -> null`###
+###`Gossip.set(key, value) -> Boolean`###
 
 This method applies a local delta, simply setting the given key to the given
 value in the local instance, and tacking on the appropriate `version` number and
-`source_id`.
+`source_id`. It's return value indicates whether the underlying stream has hit
+its high water mark. If the return value is `false`, do not write until
+`Gossip` has emitted a `"drain"` event. 
 
 ###`Gossip.get(key) -> {version: <version>, value: <obj>} `###
 
@@ -124,12 +127,19 @@ A method  which provides convenient lookup for arbitrary keys. If
 `{version:  -Infinity, value: null}`. Otherwise it returns `{version: version,
   value: value}`
 
-###`Gossip.gossip() -> undefined`###
+###`Gossip.gossip() -> Array remaining`###
 
 Causes `Gossip` to queue a randomly sorted set of `digest` objects into its
 Readable buffer. If another `Gossip` stream reads these, it will respond
 with a series of `delta` objects. See [Expected Object](#expected-objects) for
-information on the shape of the objects.
+information on the shape of the objects. 
+
+`.gossip` will not write to the underlying stream past the highWaterMark, i.e.
+after
+[gossip.push](http://nodejs.org/api/stream.html#stream_readable_push_chunk_encoding)
+returns false. Any remaining digests it would have written are returned in the
+array, `remaining`. If it succeeds in writing all digests, `remaining` will be
+empty.
 
 ## Attributes ##
 
@@ -148,7 +158,15 @@ from other instances)
 
 An object for keeping track of deltas, and replaying deltas from a given peer
 on demand. `delta` objects are transmitted individually via the `Gossip`'s
-streaming methods.
+streaming methods. 
+
+#### Events ####
+`Gossip.history` is an event emitter, which emits two events:
+
+- `"update"`: Any time an update is applied, the `"update"` event is emitted,
+with the [`update`](#delta) to be applied.
+
+- `"compaction"`: If the number of deltas recorded in the history exceeds the `max_history` parameter, the `"compaction"` event is emitted prior to removing old deltas from the history. This way the client can implement more dramatic compaction, making their own tradeoffs between performance, replayability, and speed.
 
 ####`Gossip.history.write(key, value, source_id, version)`####
 
@@ -191,26 +209,10 @@ Sets the specified `source` to the specified `version` number in the
 
 ####`Gossip.clock.create()`####
 
-Return a randomly ordered array of `digest` stream objects for each `source` in th clock. See [Expected Objects][#expected-objects].
-
-# Relation to [npm.im/scuttlebutt][] #
-
-This was inspired by [Dominic Tarr's scuttlebut module][npm.im/scuttlebutt],
-which, though totally awesome, I found a little hard to parse. So in order
-to understand [the paper][paper] , I wrote my own module to implement the
-protocol. As such this module bears great fidelity to the paper-- many
-decision that [npm.im/scuttlebutt][] leave to the client are in fact
-specified in the paper that describes the protocol. Others, such as
-resolution of delta conflicts, are left to the user to specify through
-function argument rather than subclassing. I intended to replicate
-terminology from the paper faithfully, subject of course to the
-restrictions imposed by the format and language (javascript rather than
-maths). The other difference is that this implementation does not
-require that the user specify a schema (the set of possible keys) prior to
-instantiating the `Gossip` object.
+Return a randomly ordered array of `digest` stream objects for each `source` in th clock. See [Expected Objects](#expected-objects).
 
 # TODO: #
-- A parent constructor to ensure uniquenes of id, uniformity of mtu, etc.
+
 - Investigate whether history's memory attribute should be an array that is
 `.sort(fn)`-ed, or a custom implementation, such as [this
 one][cross-filter-sort].

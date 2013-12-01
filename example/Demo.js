@@ -12,17 +12,15 @@ function Demo(n) {
 
   for(var i = 0; i < n; ++i) {
     this.keys[i] = 'id-' + i
-
-    var gossip = Gossip(this.keys[i], 10, 10)
-
-    gossip.on('state', this.update.bind(this))
-
-    nodes[i] = {gossip: gossip}
+    nodes[i] = {}
+    nodes[i].gossip = Gossip(this.keys[i], 100, 10)
+    nodes[i].gossip.on('state', this.update.bind(this))
   }
 
   for(var i = 0; i < n; ++i) {
-    var before = Math.floor((Math.random() * n))
-      , after = Math.floor((Math.random() * n))
+
+    var after  = i ? i - 1 : n - 1
+      , before = i % (n - 1)
 
     links.push({
         source: nodes[i]
@@ -52,10 +50,7 @@ function Demo(n) {
 
 Demo.prototype.tick = function() {
   this.link
-    .attr('x1', lookup('source.x'))
-    .attr('y1', lookup('source.y'))
-    .attr('x2', lookup('target.x'))
-    .attr('y2', lookup('target.y'))
+    .attr('d', linkArc)
 
   this.node.attr(
       'transform'
@@ -69,18 +64,25 @@ Demo.prototype.tick = function() {
 
 Demo.prototype.dim = function() {
   this.height = this.canvas[0][0].offsetHeight
-  this.width = this.canvas[0][0].offsetWidth
+  this.width = this.canvas[0][0].clientWidth
+  console.log(this.width)
+
   this.force
       .size([this.width, this.height])
-      .linkDistance(this.width / 10)
+      .linkDistance(200)
       .charge(-(this.width / 5))
+      .gravity(0.2)
 }
 
 Demo.prototype.start = function() {
   // Establishing some constants
   var self = this
 
-  self.canvas = d3.select('svg')
+  self.canvas = d3.select('body')
+      .insert('div', ':first-child')
+      .attr('class', 'graph')
+      .append('svg')
+
   self.dim()
 
   self.force
@@ -90,7 +92,7 @@ Demo.prototype.start = function() {
   self.link = self.canvas.selectAll('.link')
       .data(self.force.links())
       .enter()
-      .append('line')
+      .append('path')
       .attr('class', 'link')
 
   self.node = self.canvas.selectAll('.node')
@@ -103,12 +105,30 @@ Demo.prototype.start = function() {
     })
 
   self.node.attr('class', 'node')
+    .attr('fill', function(d, i) {
+      return fill(i)
+    })
+    .attr('stroke', function(d, i) {
+      return fill(i)
+    })
+
   self.node.append('polygon')
+
+  self.node.append('g')
+    .append('text')
+    .attr('x', 10)
+
+  self.node.select('g')
+    .append('text')
+    .attr('x', -20)
+    .attr('class', 'id')
+    .text(lookup('gossip.id'))
+
   self.node.call(self.force.drag)
   self.update()
 }
 
-var fill = d3.scale.category20().domain(d3.range(10))
+var fill = d3.scale.category10().domain(d3.range(10))
 
 Demo.prototype.update = function() {
   var self = this
@@ -116,9 +136,9 @@ Demo.prototype.update = function() {
   self.node.select('polygon')
     .transition()
     .duration(300)
-    .ease('quad')
     .attr('points', self.points.bind(self))
-    .attr('fill', compose(lookup('gossip.version'), fill))
+
+  self.node.select('text').text(lookup('gossip.version'))
 }
 
 Demo.prototype.points = function(data) {
@@ -129,12 +149,24 @@ Demo.prototype.points = function(data) {
   while(i < this.n) {
     var val = data.gossip.get(this.keys[i]).value || 0
 
-    points[i] = [(val + 1) * 5, i * step]
+    points[2 * i] = [(val + 1) * 10, i * step]
+    points[(2 * i) + 1] = [1, (i + 0.5) * step]
 
     i += 1
   }
 
   return this.line(points).slice(1).split('L').join(' ')
+}
+
+function linkArc(d) {
+  var dy = d.target.y - d.source.y
+    , dx = d.target.x - d.source.x
+
+  var dr = Math.sqrt(dx * dx + dy * dy)
+
+  return 'M' + d.source.x + ',' + d.source.y +
+    'A' + dr + ',' + dr + ' 0 0,1 ' +
+     d.target.x + ',' + d.target.y
 }
 
 function lookup(str) {
@@ -150,21 +182,5 @@ function lookup(str) {
     }
 
     return obj
-  }
-}
-
-function compose() {
-  var self = this
-
-  var fns = [].slice.call(arguments)
-
-  return function() {
-    var out = fns[0].apply(self, arguments)
-
-    for(var i = 1, len = fns.length; i < len; ++i) {
-      out = fns[i].call(self, out)
-    }
-
-    return out
   }
 }
