@@ -1,49 +1,14 @@
 module.exports = Demo
 
-var Gossip = require('../index')
-  , d3 = require('d3')
+var d3 = require('d3')
 
-function Demo(n) {
-  this.n = n
+function Demo(network) {
+  this.n = network.n
   this.keys = []
 
-  var nodes = []
-    , links = []
-
-  for(var i = 0; i < n; ++i) {
-    this.keys[i] = 'id-' + i
-    nodes[i] = {}
-    nodes[i].gossip = Gossip(this.keys[i], 100, 10)
-    nodes[i].gossip.on('state', this.update.bind(this))
-  }
-
-  for(var i = 0; i < n; ++i) {
-
-    var after  = i ? i - 1 : n - 1
-      , before = i % (n - 1)
-
-    links.push({
-        source: nodes[i]
-      , target: nodes[after]
-    })
-
-    links.push({
-        source: nodes[i]
-      , target: nodes[before]
-    })
-
-    nodes[i].gossip
-      .pipe(nodes[after].gossip)
-      .pipe(nodes[i].gossip)
-
-    nodes[i].gossip
-      .pipe(nodes[before].gossip)
-      .pipe(nodes[i].gossip)
-  }
-
   this.force = d3.layout.force()
-    .nodes(nodes)
-    .links(links)
+    .nodes(newtork.nodes)
+    .links(network.links)
 
   this.line = d3.svg.line.radial()
 }
