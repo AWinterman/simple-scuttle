@@ -1,7 +1,3 @@
-<article>
-
-#  Scuttlebutt # 
-
 *A [Scuttlebutt Gossip Protocols][scuttlebutt] with [d3 force directed layouts](https://github.com/mbostock/d3/wiki/Force-Layout) and node.js*
 
 ## A Basic Example ##
@@ -138,7 +134,6 @@ I intended to replicate terminology from the paper faithfully, subject of
 course to the restrictions imposed by the format and language (javascript
 rather than maths), although once I had internalized the concepts this ceased
 to be a conscious effort.
-</article>
 
 [cassandra]: https://wiki.apache.org/cassandra/FAQ#clocktie
 [dominic]: https://github.com/dominictarr

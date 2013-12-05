@@ -1,4 +1,4 @@
-PANDOC:=pandoc --normalize --smart --write=html5 --read=markdown --standalone -c style.css  --section-divs -T scuttlebutt
+PANDOC:=pandoc --normalize --smart --write=html5 --read=markdown --standalone -c style.css  --section-divs -V title:scuttlebutt --template ./template.html
 
 BROWSERIFY:=browserify -d main.js
 
