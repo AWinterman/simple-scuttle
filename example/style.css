@@ -35,6 +35,8 @@ body > article {
   -webkit-box-flex: 1 1 0;
   -webkit-box-ordinal-group: 1
   order: 1;
+  display:flex;
+  align-items: space-between;
 }
 
 body > .graph {
@@ -46,6 +48,21 @@ body > .graph {
   min-width: 30em;
   transition: margin-top 0.2s
 }
+
+
+section.level2 {
+  flex: 1 1 0;
+  border: 1px solid #ddd;
+  padding: 1em;
+  margin-top: 1em;
+  border-radius: 1em;
+}
+
+section.level2 > h2 {
+  margin-top: 0em;
+  margin-bottom: 0em;
+}
+
 
 .browser-error {
   display: none;

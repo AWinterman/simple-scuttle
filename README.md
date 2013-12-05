@@ -20,8 +20,7 @@ protocol before continuing too much further.
 Simple-Scuttle exports a class - soit `Gossip` - whose instances are transform
 streams in objectMode. `Gossip` instances maintain several data structures with
 which they manages state (see [`Gossip.state`](#gossipstate)) and the
-propagation of state changes (implemented with [`Gossip.clock`](#gossipclock)
-and [`Gossip.history`](#gossiphistory)).
+propagation of state changes (see [`Gossip.history`](#gossiphistory)).
 
 Rather than implementing several parallel streams, `Gossip` instances choose
 logical branches based on the semantics of the objects written to them--  the
@@ -182,35 +181,6 @@ the client to take action prior to pruning the `memory` array to
 Returns an array of `delta`s which came from a source with unique identifier
 matching `id`, and which occurred after `version`.
 
-###`Gossip.digest`###
-
-A [vector clock][vector-clocks-hard] which keeps track of the maximum version
-number this `Gossip` instance has seen from each of its peers. `Gossip.digest`
-also provides a for constructing a `digest` objects as specified in [Expected
-Objects](#expected-objects)
-
-For a paper defining vector clocks, see [here][vector-clock-paper]
-
-
-####`Gossip.clock.clock`####
-
-The vector clock-- a map from `source_ids` to version numbers, keeping
-track of the last update this `Gossip` instance has seen from any of its peers.
-
-####`Gossip.clock.get(id)` -> `Integer version'####
-
-Returns the version number for the specified `id`, or `-Infinity` if it cannot be
-found.
-
-####`Gossip.clock.set(source, version)`####
-
-Sets the specified `source` to the specified `version` number in the
-`Gossip.clock.clock` object.
-
-####`Gossip.clock.create()`####
-
-Return a randomly ordered array of `digest` stream objects for each `source` in th clock. See [Expected Objects](#expected-objects).
-
 # TODO: #
 
 - Investigate whether history's memory attribute should be an array that is
@@ -222,5 +192,4 @@ one][cross-filter-sort].
 [paper]: http://www.cs.cornell.edu/home/rvr/papers/flowgossip.pdf
 [vector-clocks-hard]: http://basho.com/why-vector-clocks-are-hard/
 [cross-filter-sort]: https://github.com/square/crossfilter/blob/master/src/quicksort.js
-[vector-clock-paper]: http://research.microsoft.com/en-us/um/people/lamport/pubs/time-clocks.pdf
 

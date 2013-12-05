@@ -4,18 +4,20 @@ var Clock = require('../lib/clock')
 test('test setter method', function(assert) {
   var d = new Clock('B')
 
-  d.set('A', 2)
-  d.set('A', 1)
+  d.set('A')
+  d.set('A')
 
-  assert.strictEqual(d.get('B'), -Infinity)
+  assert.strictEqual(
+      d.get('B')
+    , 2
+    , 'Local id gets bumped every time (0 indexed)'
+  )
 
-  d.set('B', 3)
+  d.set('B')
+  d.set('A')
 
-  // direct access :\
-  assert.strictEqual(d.clock.A, 2)
-
-  assert.strictEqual(d.get('B'), 3)
-  assert.strictEqual(d.get('A'), 2)
+  assert.strictEqual(1, d.get('A'))
+  assert.strictEqual(5, d.get('B'))
   assert.end()
 })
 

@@ -1,8 +1,10 @@
-
 <article>
+
 #  Scuttlebutt # 
 
 *A [Scuttlebutt Gossip Protocols][scuttlebutt] with [d3 force directed layouts](https://github.com/mbostock/d3/wiki/Force-Layout) and node.js*
+
+## A Basic Example ##
 
 Clicking on a star causes it to change its own
 state-- the length of each point of the star represents how many times it has
@@ -57,46 +59,48 @@ A : [2, 1] -> A[k] = a
 B : [1, 1] -> B[k] = null
 ```
 
-When A gossips with B, they simply compare version numbers.
+When A gossips with B, they simply compare version numbers. B applies the
+update since it has a version number higher than any it has seen before. It
+also increments its own vector clock.
 
 ```
 A : [2, 1] -> A[k] = a
-B : [2, 1] -> A[k] = a
+B : [2, 2] -> A[k] = a
 ```
 
 Now B receives an update:
 
 ```
 A: [2, 1] -> A[k] = a
-B: [2, 2] -> B[k] = b
+B: [2, 3] -> B[k] = b
 ```
 
 And gossips with A:
 
 ```
-A: [2, 2] -> A[k] = b
-B: [2, 2] -> B[k] = b
+A: [3, 3] -> A[k] = b
+B: [2, 3] -> B[k] = b
 ```
 
 But what happens if A and B both receive updates before they have a chance to
 gossip?
 
 ```
-A: [3, 2] -> A[k] = alpha
-B: [2, 3] -> B[k] = beta
+A: [4, 3] -> A[k] = alpha
+B: [2, 4] -> B[k] = beta
 ```
 
 Now they gossip:
 
 ```
-A: [3, 3] -> (A: [3, 2] -> A[k] = alpha) + (B: [3, 2] -> B[k] = beta)
-B: [3, 3] -> (A: [3, 2] -> A[k] = alpha) + (B: [3, 2] -> B[k] = beta)
+A: [5, 4] -> (A: [4, 3] -> A[k] = alpha) + (B: [2, 4] -> B[k] = beta)
+B: [4, 5] -> (A: [4, 3] -> A[k] = alpha) + (B: [2, 4] -> B[k] = beta)
 ```
 
 Where `+` means resolve. But what is the value of this sum?
 
 ```
-(A: [3, 2] -> A[k] = alpha) + ( B: [3, 2] -> B[k] = beta)
+(A: [4, 3] -> A[k] = alpha) + ( B: [2, 4] -> B[k] = beta)
 ```
 
 This turns out to be a frustrating question. For example [cassandra][], which
