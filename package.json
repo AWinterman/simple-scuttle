@@ -16,5 +16,8 @@
     "through": "~2.3.4",
     "tape": "~2.1.0",
     "tap": "~0.4.4"
+  },
+  "dependencies": {
+    "vector-clock-class": "~1.0.0"
   }
 }
