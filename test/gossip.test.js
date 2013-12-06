@@ -1,4 +1,5 @@
 var Gossip = require('../lib/gossip')
+  , Stream = require('stream')
   , test = require('tape')
 
 test('Integration test via readable calls', readable)
@@ -7,6 +8,7 @@ test(
     'updates from one propagate across the network (large)'
   , can_pipe.bind(null, 100, 100)
 )
+
 
 test(
     'updates from one propagate across the network (medium)'
@@ -40,6 +42,7 @@ test(
   , everyone_their_own.bind(null, 1, 30)
 )
 
+
 function verify_mtu(assert) {
   var A = new Gossip('#A', 2, 1)
 
@@ -55,11 +58,14 @@ function verify_mtu(assert) {
 
   A.on('readable', function() {
 
-    var ith_result = A.read()
-
-    assert.deepEqual(ith_result.value, expected[i])
-
-    i++
+    while(true) {
+      var ith_result = A.read()
+      if(!ith_result) {
+        break
+      }
+      assert.deepEqual(ith_result.value, expected[i])
+      i++
+    }
 
     if(i === 4) {
       assert.end()
@@ -228,34 +234,42 @@ function can_pipe(mtu, buffer, assert) {
   B.pipe(C).pipe(B)
   A.pipe(D).pipe(A)
 
+  var tester = Stream.Writable({objectMode: true})
+
+  tester._write = function(data, enc, cb) {
+    cb()
+  }
+
+  A.pipe(tester)
+
   var go = setInterval(gossip, 100)
 
   function verify() {
+
+    clearInterval(go)
     var expected = {
-        1: {value: 'a', version: 1}
-      , 2: {value: 'b', version: 1}
-      , 3: {value: 'c', version: 2}
-      , 4: {value: 'd', version: 2}
-      , 5: {value: 'e', version: 3}
-      , 6: {value: 'f', version: 3}
-      , 7: {value: 'g', version: 4}
-      , 8: {value: 'h', version: 4}
-      , 9: {value: 'i', version: 5}
-      , 10: {value: 'j', version: 5}
+        1: 'a'
+      , 2: 'b'
+      , 3: 'c'
+      , 4: 'd'
+      , 5: 'e'
+      , 6: 'f'
+      , 7: 'g'
+      , 8: 'h'
+      , 9: 'i'
+      , 10: 'j'
     }
 
-    assert.deepEqual(C.state[1], expected[1])
-    assert.deepEqual(C.state[2], expected[2])
-    assert.deepEqual(C.state[3], expected[3])
-    assert.deepEqual(C.state[4], expected[4])
-    assert.deepEqual(D.state[5], expected[5])
-    assert.deepEqual(D.state[6], expected[6])
-    assert.deepEqual(D.state[7], expected[7])
+    assert.deepEqual(C.state[1].value, expected[1])
+    assert.deepEqual(C.state[2].value, expected[2])
+    assert.deepEqual(C.state[3].value, expected[3])
+    assert.deepEqual(C.state[4].value, expected[4])
+    assert.deepEqual(D.state[5].value, expected[5])
+    assert.deepEqual(D.state[6].value, expected[6])
+    assert.deepEqual(D.state[7].value, expected[7])
     assert.strictEqual(count, 10)
-    clearInterval(go)
     assert.end()
   }
-
 
   function gossip() {
     if(count % 2) {
@@ -264,14 +278,14 @@ function can_pipe(mtu, buffer, assert) {
       B.set(key[count], val[count])
     }
 
+    A.gossip()
+    B.gossip()
+    C.gossip()
+    D.gossip()
+
     count++
 
     if(count === key.length) {
-      A.gossip()
-      B.gossip()
-      C.gossip()
-      D.gossip()
-
       verify()
     }
   }
