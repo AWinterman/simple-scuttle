@@ -2,8 +2,6 @@
 
 Replicate state across a network with the scuttlebutt protocol.
 
-**SIMPLE-SCUTTLE IS IN BETA**
-
 [![Build
 Status](https://travis-ci.org/AWinterman/simple-scuttle.png?branch=master)](https://travis-ci.org/AWinterman/simple-scuttle)
 
@@ -126,7 +124,7 @@ A method  which provides convenient lookup for arbitrary keys. If
 `{version:  -Infinity, value: null}`. Otherwise it returns `{version: version,
   value: value}`
 
-###`Gossip.gossip() -> Array remaining`###
+###`Gossip.gossip() -> null`###
 
 Causes `Gossip` to queue a randomly sorted set of `digest` objects into its
 Readable buffer. If another `Gossip` stream reads these, it will respond
@@ -136,9 +134,7 @@ information on the shape of the objects.
 `.gossip` will not write to the underlying stream past the highWaterMark, i.e.
 after
 [gossip.push](http://nodejs.org/api/stream.html#stream_readable_push_chunk_encoding)
-returns false. Any remaining digests it would have written are returned in the
-array, `remaining`. If it succeeds in writing all digests, `remaining` will be
-empty.
+returns false. 
 
 ## Attributes ##
 
