@@ -1,0 +1,149 @@
+* {
+  line-height: 1.4em;
+  font-family: courier-new;
+}
+
+article {
+  padding-bottom: 3em;
+}
+
+section.container > :first-child {
+  padding: 1em;
+  margin-top: 1em;
+  max-width: 35em;
+}
+
+
+section.container > section.example.ring {
+  max-height: 20em;
+}
+
+section.container > section.example.random {
+  max-height: 30em;
+}
+
+section.container {
+  display: flex;
+  flex-flow: row-reverse;
+  justify-content: center;
+  align-items: center;
+}
+
+section.container {
+  flex: 1 0 35em;
+}
+
+section.container > section.example {
+  flex: 1 1 auto;
+}
+
+
+section.container > section.example.pair {
+  max-height: 10em;
+}
+
+header {
+  text-align: center;
+}
+header > .title{
+  display: none;
+}
+header > .author {
+  font-size: 2em;
+  display: inline;
+}
+header > .date  {
+  font-size: 1em;
+  font-weight: normal;
+  display: inline;
+  font-style: italic;
+}
+
+
+header > .date strong {
+  font-height: 2em;
+  display: inline;
+}
+
+article > section.footnotes {
+  border: none;
+}
+
+svg .link {
+  stroke-width: 2px;
+  stroke: grey;
+  fill: none;
+}
+
+svg .node text.id {
+  visibility: hidden;
+  font-size: 1.5em;
+  font-weight: 100;
+  stroke: white;
+  fill: white;
+  font-stretch: expanded;
+}
+
+svg .node:hover text.id {
+  visibility: visible;
+}
+
+pre {
+  background-color: #f8f8f8;
+  border: 1px solid #ddd;
+  overflow: visible;
+  border-radius: 3px;
+  font-size: 0.9em;
+  padding-left: 0.5em;
+}
+
+pre > code {
+  background: transparent;
+  border: 0;
+  padding: 0px 0px;
+  white-space: pre-wrap;
+}
+
+code {
+  font-family: courier, monospace;
+  background-color: #f8f8f8;
+  border: 1px solid #ddd;
+  font-size: 0.9em;
+  padding: 0px 0.25em;
+}
+
+.fps {
+  position: fixed;
+  left: 0px;
+  top: 0px;
+}
+
+h1 {
+  font-size: 2em;
+}
+
+h2 {
+  font-size: 1.5em;
+}
+
+a {
+  color: steelblue;
+  font-weight: 900;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+  color: #7BA6B4;
+}
+
+a:visited {
+  color: brown;
+  font-weight: 100;
+}
+
+a:hover:visited {
+  text-decoration: underline;
+  color: #7BA6B4;
+}
+

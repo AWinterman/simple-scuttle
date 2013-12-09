@@ -2,45 +2,86 @@ var Gossip = require('../lib/gossip')
   , Stream = require('stream')
   , test = require('tape')
 
-test('Integration test via readable calls', readable)
+// test('Integration test via readable calls', readable)
+//
+// test(
+//     'updates from one propagate across the network (large)'
+//   , can_pipe.bind(null, 100, 100)
+// )
+//
+//
+// test(
+//     'updates from one propagate across the network (medium)'
+//   , can_pipe.bind(null, 10, 10)
+// )
+//
+// test(
+//     'updates from one propagate across the network (tiny)'
+//   , can_pipe.bind(null, 3, 3)
+// )
+//
+// test('can handle more data than mtu', verify_mtu)
+//
+// test(
+//     'can handle updates from all across network (large)'
+//   , everyone_their_own.bind(null, 100, null)
+// )
+//
+// test(
+//     'can handle updates from all across network (medium)'
+//   , everyone_their_own.bind(null, 10, null)
+// )
+//
+// test(
+//     'can handle updates from all across network (small)'
+//   , everyone_their_own.bind(null, 3, null)
+// )
+//
+// test(
+//     'can handle updates from all across network (tiny)'
+//   , everyone_their_own.bind(null, 1, 30)
+// )
 
 test(
-    'updates from one propagate across the network (large)'
-  , can_pipe.bind(null, 100, 100)
+    'version numbers do not grow when no change occures'
+  , do_not_grow
 )
 
+function do_not_grow(assert) {
+  var A = new Gossip('#A')
+    , B = new Gossip('#B')
 
-test(
-    'updates from one propagate across the network (medium)'
-  , can_pipe.bind(null, 10, 10)
-)
+  A.write({key: 'name', value: 'Doctor'})
+  A.write({key: 'name', value: 'Who'})
+  A.write({key: 'name', value: 'Just'})
+  A.write({key: 'name', value: 'Me'})
 
-test(
-    'updates from one propagate across the network (tiny)'
-  , can_pipe.bind(null, 3, 3)
-)
+  A.gossip()
 
-test('can handle more data than mtu', verify_mtu)
+  A.pipe(B).pipe(A)
 
-test(
-    'can handle updates from all across network (large)'
-  , everyone_their_own.bind(null, 100, null)
-)
+  var version = A.clock.get('#A')
 
-test(
-    'can handle updates from all across network (medium)'
-  , everyone_their_own.bind(null, 10, null)
-)
+  var interval = setInterval(check, 10)
 
-test(
-    'can handle updates from all across network (small)'
-  , everyone_their_own.bind(null, 3, null)
-)
+  var counter = 0
 
-test(
-    'can handle updates from all across network (tiny)'
-  , everyone_their_own.bind(null, 1, 30)
-)
+  function check() {
+    var old_version = version
+    A.gossip()
+
+    version = A.clock.get('#A')
+
+    if(version === old_version) {
+      counter += 1
+      if(counter === 10) {
+        clearInterval(interval)
+        assert.end()
+      }
+    }
+  }
+
+}
 
 
 function verify_mtu(assert) {
