@@ -17,21 +17,22 @@ to it by an edge. All edges are bidirectional.
 
 ## The Protocol ##
 
-In *Efﬁcient Reconciliation and Flow Control
-for Anti-Entropy Protocols*, van Rennesse et al. model state as a key value
-store. So each node maintains a hash from keys to values and version numbers.
-Whenever they apply a new update, locally they give it a larger version number
-than any seen before.
+You should really read the [paper](scuttlebutt). However a very brief summary is given here.
+
+In *Efﬁcient Reconciliation and Flow Control for Anti-Entropy Protocols*, van
+Rennesse et al. model state as a key value store. So each node maintains a hash
+from keys to two-ples of values and version numbers.  Whenever a node receives
+a local update, it bumps the version number to be greater than max before the
+update was applied.
 
 Each node also maintains a history of the updates it has seen, both locally and
 from other nodes. When one node gossips with another, they first exchange a
-digest-- this is a list of tuples of every peer they've seen an update from,
-and the version number for that update. Upon receiving the digest each node
-selects from it's history updates from the specified peers newer than the
-version number in the digest. It orders these updates with lowest version
-number first, and then sends them off until it has used up it's allotted
-bandwidth. It then waits until another session of gossip to write any
-additional information.
+digest-- this is a list of tuples of source id and version number, which fully
+describe the most recent information the sender has received, and from whome.
+The listener responds with all updates it has seen which it knows the sender
+has not. It orders these updates with lowest version number first, and then
+sends them off until it has used up it's allotted bandwidth. It then waits
+until another session of gossip to write any additional information.
 
 Scuttlebutt is cpu and network efficient, and **eventually** consistent.
 
