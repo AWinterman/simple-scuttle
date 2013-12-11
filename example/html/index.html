@@ -26,6 +26,12 @@
 <p>Clicking on a star causes it to change its own state– the length of each point of the star represents how many times it has been clicked. Each star propagates its state across the network via a <a href="https://github.com/awinterman/simple-scuttle">JavaScript implementation</a> of the <a href="http://www.cs.cornell.edu/home/rvr/papers/flowgossip.pdf">scuttlebutt gossip protocol</a>.</p>
 <p>Every 30 milliseconds, a randomly chosen node gossips with the nodes connected to it by an edge. All edges are bidirectional.</p>
 </section>
+<section id="the-protocol" class="level2">
+<h2>The Protocol</h2>
+<p>In <em>Efﬁcient Reconciliation and Flow Control for Anti-Entropy Protocols</em>, van Rennesse et al. model state as a key value store. So each node maintains a hash from keys to values and version numbers. Whenever they apply a new update, locally they give it a larger version number than any seen before.</p>
+<p>Each node also maintains a history of the updates it has seen, both locally and from other nodes. When one node gossips with another, they first exchange a digest– this is a list of tuples of every peer they’ve seen an update from, and the version number for that update. Upon receiving the digest each node selects from it’s history updates from the specified peers newer than the version number in the digest. It orders these updates with lowest version number first, and then sends them off until it has used up it’s allotted bandwidth. It then waits until another session of gossip to write any additional information.</p>
+<p>Scuttlebutt is cpu and network efficient, and <strong>eventually</strong> consistent.</p>
+</section>
 <section id="history-and-compaction" class="level2">
 <h2>History and Compaction <a href="#history-and-compaction">§</a></h2>
 <p>In <a href="http://www.cs.cornell.edu/home/rvr/papers/flowgossip.pdf">the paper</a>, where nodes need not abide by practical limitations such as browser performance, the authors assume that each node can hold on to a complete history of all the updates that have ever been applied to it. Updates are simply snapshots of a piece of the state, so it should be safe to throw out old updates once the node receives a new one for the same part of state. <a href="https://github.com/awinterman/simple-scuttle">Simple-scuttle</a> allows the user to bound the number of updates to hold on to. Once the bound is reached, each time a new update is written to the history, an old one is thrown out.</p>

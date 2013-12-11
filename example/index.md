@@ -15,6 +15,26 @@ protocol][scuttlebutt].
 Every 30 milliseconds, a randomly chosen node gossips with the nodes connected
 to it by an edge. All edges are bidirectional.
 
+## The Protocol ##
+
+In *Efﬁcient Reconciliation and Flow Control
+for Anti-Entropy Protocols*, van Rennesse et al. model state as a key value
+store. So each node maintains a hash from keys to values and version numbers.
+Whenever they apply a new update, locally they give it a larger version number
+than any seen before.
+
+Each node also maintains a history of the updates it has seen, both locally and
+from other nodes. When one node gossips with another, they first exchange a
+digest-- this is a list of tuples of every peer they've seen an update from,
+and the version number for that update. Upon receiving the digest each node
+selects from it's history updates from the specified peers newer than the
+version number in the digest. It orders these updates with lowest version
+number first, and then sends them off until it has used up it's allotted
+bandwidth. It then waits until another session of gossip to write any
+additional information.
+
+Scuttlebutt is cpu and network efficient, and **eventually** consistent.
+
 ## History and Compaction [&sect;](#history-and-compaction) ##
 In [the paper][scuttlebutt], where nodes need not abide by practical
 limitations such as browser performance, the authors assume that each node can

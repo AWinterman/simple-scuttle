@@ -9,8 +9,9 @@ function interaction(el, network) {
   var going = false
 
   resize()
-  onscroll()
   demo.start()
+  demo.force.start()
+  setTimeout(onscroll, 3)
 
   for(var i = 0, len = demo.node[0].length; i < len; ++i) {
     demo.node[0][i].onmousedown = click()

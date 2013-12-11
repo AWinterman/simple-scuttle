@@ -76,7 +76,6 @@ function RingConflict(n, mtu, history) {
     if(i === (this.nodes.length - 1)) {
       end = 0
     }
-    console.log(start, end, this.nodes[start], this.nodes[end])
 
     this.links[i] = {
         source: this.nodes[start]

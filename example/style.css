@@ -25,7 +25,7 @@ section.container > section.example.random {
 section.container {
   display: flex;
   flex-flow: row-reverse;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
 }
 
@@ -86,6 +86,11 @@ svg .node text.id {
 
 svg .node:hover text.id {
   visibility: visible;
+}
+
+svg {
+  min-width: 3em;
+  min-height: 3em;
 }
 
 pre {

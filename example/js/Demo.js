@@ -23,7 +23,12 @@ Demo.prototype.tick = function() {
   /* this.link.attr('d', linkArc) */
   this.node.attr('transform', translate)
 
-  this.link.attr("x1", lookup('source.x'))
+  this.link
+      .filter(lookup('source.x'))
+      .filter(lookup('source.y'))
+      .filter(lookup('target.x'))
+      .filter(lookup('target.y'))
+      .attr("x1", lookup('source.x'))
       .attr("y1", lookup('source.y'))
       .attr("x2", lookup('target.x'))
       .attr("y2", lookup('target.y'));
@@ -39,12 +44,19 @@ Demo.prototype.dim = function() {
   this.width = rect.width
   this.height = rect.height
 
+
+  if(!this.height || !this.width) {
+    return false
+  }
+
   var max_length = Math.min(this.width, this.height) / 10
 
   this.force
       .size([this.width, this.height])
       .linkDistance(max_length)
       .charge(-1000)
+
+  return true
 }
 
 Demo.prototype.start = function() {
