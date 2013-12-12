@@ -10,7 +10,10 @@
     "fps": "0.0.3",
     "simple-scuttle": "~1.0.0"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "hyperstream": "~0.4.0",
+    "browserify": "~3.1.3"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "make": "make && open html/index.html"
