@@ -25,6 +25,8 @@ install:
 prod: 
 	$(PANDOC) -V include-after:"<script class=bundle></script>" -V header-includes:"<style class=style></style>" index.md > html/temp.html
 	node add-assets.js  > html/index.html
+	cp html/index.html ../.git/index.html
+	git checkout gh-pages
+	cp ../.git/index.html ../index.html
+	git commit -a -m "update"
 
-publish: 
-	./publish.sh
