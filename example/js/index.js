@@ -38,12 +38,14 @@ var pair_conflict = create_demo('example pair conflict')
 var ring = create_demo('example ring')
 var ring_conflict = create_demo('example ring conflict')
 var random = create_demo('example random')
+var random2 = create_demo('example random')
 
 sections[0].appendChild(pair)
 sections[1].appendChild(ring)
-sections[3].appendChild(pair_conflict)
+sections[2].appendChild(random2)
+sections[3].appendChild(random)
 sections[4].appendChild(ring_conflict)
-sections[5].appendChild(random)
+sections[5].appendChild(pair_conflict)
 
 setTimeout(function() {
   interaction(pair, new networks.Pair())
@@ -51,6 +53,7 @@ setTimeout(function() {
   interaction(ring, new networks.Ring(10))
   interaction(ring_conflict, new networks.RingConflict(10))
   interaction(random, new networks.Random(20))
+  interaction(random2, new networks.Random(10))
 }, 1)
 
 function create_demo(classname) {
