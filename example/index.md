@@ -9,7 +9,8 @@
 The [Scuttlebutt Gossip protocol][scuttlebutt] is a method for propagating
 state, which we take to be a mapping from keys to values, across a network. In
 general, the network could be any distributed system-- computers distributed in
-space, processes in a single computer, or as is the case here, svg polygons (![inline-ten](./svg/ten.svg)) in the DOM.
+space, processes in a single computer, or as is the case here, svg polygons
+(![inline-ten](./assets/ten.svg)) in the DOM.
 
 The examples here rely on a [Javascript implementation][simple-scuttle], called
 *Simple-Scuttle*, of the gossip protocol. *Simple-Scuttle* defines a prototype
@@ -18,7 +19,7 @@ which inherits from node.js streams[^stream]. The brightly colored force directe
 ## Visualization Details ##
 
 The accompanying visualization of the protocol uses polygons, 
-![pair](./svg/pair.svg), ![ten](./svg/ten.svg), or ![twenty](./svg/twenty.svg),
+![pair](./assets/pair.svg), ![ten](./assets/ten.svg), or ![twenty](./assets/twenty.svg),
 to for nodes in the network. The network propagates the number of times each
 node has been clicked. The mapping from node id to click count is
 the state in this instance.
@@ -32,13 +33,14 @@ javascript api.
 **Click on a node to update its state!**
 
 The state at each node is represented by the polygon's shape- there is one
-point per node in the network, so ![pair](./svg/pair.svg) describes a network
-with two nodes in it, and ![ten](./svg/ten.svg) a network with ten. When the
+point per node in the network, so ![pair](./assets/pair.svg) describes a network
+with two nodes in it, and ![ten](./assets/ten.svg) a network with ten. When the
 user clicks on a node, its corresponding point distends, 
 
-####so after a few clicks, ![full](./svg/pair.svg) might turn into ![full](./svg/distended-pair.svg) .####
+####so after a few clicks, ![full](./assets/pair.svg) might turn into
+![full](./assets/distended-pair.svg) .####
 
-Edges between ![ten](./svg/ten.svg) indicate the *Simple-Scuttle* attatched to
+Edges between ![ten](./assets/ten.svg) indicate the *Simple-Scuttle* attatched to
 the dom element can share information about their state with one another. There
 is no other way one node can learn the state of another.
 
@@ -64,9 +66,9 @@ Gossip between two peers begins by exchanging vector clocks-- each peer sends
 the other a list of highest version numbered update they've seen from everybody
 in the network (including themselves). 
 
-Suppose ![pair](./svg/pair.svg) sends its vector clock to
-![red-pair](./svg/red-pair.svg). In that list there's the pair
-(![red-pair](./svg/red-pair.svg), 10). ![red-pair](./svg/red-pair.svg) responds with
+Suppose ![pair](./assets/pair.svg) sends its vector clock to
+![red-pair](./assets/red-pair.svg). In that list there's the pair
+(![red-pair](./assets/red-pair.svg), 10). ![red-pair](./assets/red-pair.svg) responds with
 all the updates it has seen locally which are greater than 10, ordering them in
 chronological order. If there are more updates than fit in bandwidth, then are
 simply omitted until the next round of communication, when the two nodes will
