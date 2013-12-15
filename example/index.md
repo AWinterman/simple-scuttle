@@ -1,55 +1,78 @@
 % Scuttlebutt
-% **[Scuttlebutt Gossip Protocols][scuttlebutt]**
+% **[A Scuttlebutt Demo][scuttlebutt]**
 % with [d3 force directed layouts](https://github.com/mbostock/d3/wiki/Force-Layout) and node.js
 
-For best viewing, use chrome, opera or safari.
+<aside>For best viewing, use chrome, opera or safari.</aside>
 
-## A Basic Example ##
+## What is it? [&sect;](#history-and-compaction)##
 
-Clicking on a star causes it to change its own
-state-- the length of each point of the star represents how many times it has
-been clicked. Each star propagates its state across the network via a
-[JavaScript implementation][simple-scuttle] of the [scuttlebutt gossip
-protocol][scuttlebutt]. 
+The [Scuttlebutt Gossip protocol][scuttlebutt] is a method for propagating
+state, which we take to be a mapping from keys to values, across a network. In
+general, the network could be any distributed system-- computers distributed in
+space, processes in a single computer, or as is the case here, svg polygons (![inline-ten](./svg/ten.svg)) in the DOM.
 
-Every 30 milliseconds, a randomly chosen node gossips with the nodes connected
-to it by an edge. All edges are bidirectional.
+The examples here rely on a [Javascript implementation][simple-scuttle], called
+*Simple-Scuttle*, of the gossip protocol. *Simple-Scuttle* defines a prototype
+which inherits from node.js streams[^stream]. The brightly colored force directed graphs are visualizations of the protocol in action.
 
-## The Protocol ##
+## Visualization Details ##
 
-You should really read the [paper](scuttlebutt). However a very brief summary is given here.
+The accompanying visualization of the protocol uses polygons, 
+![pair](./svg/pair.svg), ![ten](./svg/ten.svg), or ![twenty](./svg/twenty.svg),
+to for nodes in the network. The network propagates the number of times each
+node has been clicked. The mapping from node id to click count is
+the state in this instance.
 
-In *Efﬁcient Reconciliation and Flow Control for Anti-Entropy Protocols*, van
-Rennesse et al. model state as a key value store. So each node maintains a hash
-from keys to two-ples of values and version numbers.  Whenever a node receives
-a local update, it bumps the version number to be greater than max before the
-update was applied.
+Each polygon keeps track of the number of times *it* has been clicked, but must
+learn about the number of times *every other* polygon has been clicked through
+gossip. The polygon has a representation as an object in the DOM with a
+*Simple-Scuttle* class instance attribute, which has been set through the DOM's
+javascript api.
 
-Each node also maintains a history of the updates it has seen, both locally and
-from other nodes. When one node gossips with another, they first exchange a
-digest-- this is a list of tuples of source id and version number, which fully
-describe the most recent information the sender has received, and from whome.
-The listener responds with all updates it has seen which it knows the sender
-has not. It orders these updates with lowest version number first, and then
-sends them off until it has used up it's allotted bandwidth. It then waits
-until another session of gossip to write any additional information.
+**Click on a node to update its state!**
+
+The state at each node is represented by the polygon's shape- there is one
+point per node in the network, so ![pair](./svg/pair.svg) describes a network
+with two nodes in it, and ![ten](./svg/ten.svg) a network with ten. When the
+user clicks on a node, its corresponding point distends, 
+
+####so after a few clicks, ![full](./svg/pair.svg) might turn into ![full](./svg/distended-pair.svg) .####
+
+Edges between ![ten](./svg/ten.svg) indicate the *Simple-Scuttle* attatched to
+the dom element can share information about their state with one another. There
+is no other way one node can learn the state of another.
+
+## The Protocol [&sect;](#history-and-compaction) ##
+
+*I recommend reading the [paper][scuttlebutt] for the full story, including a
+discussion of it's performance characteristics.*
+
+There are essentially three data structures to Scuttlebutt-- some sort of store
+for the state, a [vector clock](http://npm.im/vector-clock-class) which helps
+determine what updates to ask for, and a structure for replaying, compacting,
+and holding on to
+[history](https://github.com/AWinterman/simple-scuttle/blob/master/lib/history.js).
+Additionally, there is an ettiquette for how gossip should happen.
+
+The vector clock ensures that updates received by a node can be at least
+partially ordered by a `precedes` relation, which allows quick exchange about
+the most recent information you have seen. The history structure ensures
+that you can tell your peer the news when you have heard something they have
+not.
+
+Gossip between two peers begins by exchanging vector clocks-- each peer sends
+the other a list of highest version numbered update they've seen from everybody
+in the network (including themselves). 
+
+Suppose ![pair](./svg/pair.svg) sends its vector clock to
+![red-pair](./svg/red-pair.svg). In that list there's the pair
+(![red-pair](./svg/red-pair.svg), 10). ![red-pair](./svg/red-pair.svg) responds with
+all the updates it has seen locally which are greater than 10, ordering them in
+chronological order. If there are more updates than fit in bandwidth, then are
+simply omitted until the next round of communication, when the two nodes will
+begin where they left off.
 
 Scuttlebutt is cpu and network efficient, and **eventually** consistent.
-
-## History and Compaction [&sect;](#history-and-compaction) ##
-In [the paper][scuttlebutt], where nodes need not abide by practical
-limitations such as browser performance, the authors assume that each node can
-hold on to a complete history of all the updates that have ever been applied to
-it.  Updates are simply snapshots of a piece of the state, so it should be safe
-to throw out old updates once the node receives a new one for the same part of
-state. [Simple-scuttle][simple-scuttle] allows the user to bound the number of
-updates to hold on to. Once the bound is reached, each time a new update is
-written to the history, an old one is thrown out. 
-
-There is a hook whereby the client can implement her own compaction of history.
-The scuttlebutt instance has a `.history` attribute which emits `update` events
-whenever a new update is applied, and `compaction` events whenever writing the
-new update will cause it to throw out an old one.
 
 ## Versioning [&sect;](#conflicts)##
 
@@ -131,12 +154,9 @@ turns out it cannot do so without appeal to external heauristics or physical
 time, a difficult task across a distributed network. 
 
 Lamport recommends reading [*Dissemination of System Time* by Ellingson et
-al.][system time], but the paper remains behind a tall paywall[^1], so I haven't
+al.][system time], but the paper remains behind a tall paywall[^system-time], so I haven't
 been able to read it.
 
-[^1]: If anyone has contact information for the author, or is able to grant legitimate
-free access to the paper, please [contact
-me](https://twitter.com/andywinterman)
 
 During my research (furious googling for the most part), heuristics proved the
 more common approach. Some are maddeningly arbitrary. For example,
@@ -176,6 +196,16 @@ course to the restrictions imposed by the format and language (javascript
 rather than maths), although once I had internalized the concepts this ceased
 to be a conscious effort.
 
+
+[^stream]: [Node Streams][node streams] abstractions built into the node core
+library for handling data over time. They present a unix-like api which allows
+one to write to sinks, read from sources, and pipe sources to sinks. They are
+available in the browser via [browserify][].&nbsp;
+
+[^system-time]: If anyone has contact information for the author, or is able to
+grant legitimate free access to the paper, please [contact
+me](https://twitter.com/andywinterman).&nbsp;
+
 [cassandra]: https://wiki.apache.org/cassandra/FAQ#clocktie
 [dominic]: https://github.com/dominictarr
 [dominic-resolve]: https://github.com/dominictarr/scuttlebutt/blob/master/util.js#L29-L36
@@ -185,4 +215,6 @@ to be a conscious effort.
 [conflict-resolution]: ./conflict.html
 [vector clock]: http://research.microsoft.com/en-us/um/people/lamport/pubs/time-clocks.pdf
 [system time]: http://ieeexplore.ieee.org/xpl/login.jsp?tp=&arnumber=1091674&url=http%3A%2F%2Fieeexplore.ieee.org%2Fxpls%2Fabs_all.jsp%3Farnumber%3D1091674
+[node streams]: http://nodejs.org/api/stream.html
+[browserify]: http://browserify.org/
 

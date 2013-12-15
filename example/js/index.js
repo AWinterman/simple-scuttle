@@ -24,7 +24,7 @@ ticker.on('data', function(framerate) {
   fps_el.innerHTML = 'fps: ' + framerate
 })
 
-var sections = sizzle('section.level2')
+var sections = sizzle('section')
   , article = document.querySelector('article')
 
 for(var i = 0; i < sections.length; ++i) {

@@ -1,16 +1,47 @@
-* {
-  line-height: 1.4em;
+body {
+  line-height: 1.25em;
   font-family: courier-new;
 }
 
-article {
-  padding-bottom: 3em;
+ul {
+  margin-bottom: 0em;
 }
 
-section.container > :first-child {
-  padding: 1em;
-  margin-top: 1em;
+aside {
+  margin-top: 0em;
+  margin-bottom: 0em;
+}
+
+.footnotes {
   max-width: 35em;
+}
+
+sup {
+  vertical-align: super;
+  line-height: 0;
+}
+
+article {
+  display: flex;
+  flex-flow: column;
+  align-items: stretch;
+  padding-bottom: 3em;
+  justify-content: center;
+}
+
+svg {
+  border: 5px solid dashed;
+}
+
+section.container {
+  border: 1px solid black;
+  flex: 0.5 0.1 0;
+  height: 80%;
+  overflow: visible;
+  display: flex;
+  flex-flow: row-reverse;
+  justify-content: flex-start;
+  align-items: stretch; 
 }
 
 
@@ -22,24 +53,35 @@ section.container > section.example.random {
   max-height: 30em;
 }
 
-section.container {
-  display: flex;
-  flex-flow: row-reverse;
-  justify-content: flex-start;
-  align-items: center;
-}
-
-section.container {
-  flex: 1 0 35em;
-}
-
 section.container > section.example {
   flex: 1 1 auto;
 }
 
-
 section.container > section.example.pair {
   max-height: 10em;
+}
+
+
+
+article:last-child {
+  flex: 1 1 0;
+}
+
+section.footnotes {
+  align-self: flex-end;
+  flex: 1 1 0;
+}
+
+section.container > :first-child {
+  padding: 1em;
+  margin-top: 1em;
+  max-width: 35em;
+  overflow: hidden;
+  flex: 2 0 0;
+}
+
+section.container > section.example {
+  flex: 1 0 0;
 }
 
 header {
@@ -150,5 +192,21 @@ a:visited {
 a:hover:visited {
   text-decoration: underline;
   color: #7BA6B4;
+}
+
+img {
+  vertical-align: middle;
+  height: 1em;
+}
+
+img[alt=full] {
+  vertical-align: middle;
+  height: auto;
+}
+
+h4 {
+  text-align: center;
+  font-weight: 100;
+  text-size: 1em;
 }
 
