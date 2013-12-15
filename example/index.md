@@ -37,8 +37,7 @@ point per node in the network, so ![pair](./assets/pair.svg) describes a network
 with two nodes in it, and ![ten](./assets/ten.svg) a network with ten. When the
 user clicks on a node, its corresponding point distends, 
 
-####so after a few clicks, ![full](./assets/pair.svg) might turn into
-![full](./assets/distended-pair.svg).
+####so after a few clicks, ![full](./assets/pair.svg) might turn into ![full](./assets/distended-pair.svg).####
 
 Edges between ![ten](./assets/ten.svg) indicate the *Simple-Scuttle* attatched to
 the dom element can share information about their state with one another. There
