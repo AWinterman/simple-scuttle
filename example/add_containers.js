@@ -18,8 +18,6 @@ trumpet.pipe(process.stdout)
 function wrap(elem) {
   var first = elem.createStream(opts)
 
-  elem.getAttribute('id', add_id_to_header)
-
   first.pipe(done(first))
 }
 
@@ -30,12 +28,7 @@ function done(stream) {
       '<section class=container>' +
       '<section class=example><svg></svg></section>' +
        data.toString() +
-       '</section>'
+      '</section>'
     )
   })
 }
-
-function add_id_to_header(id) {
-}
-
-

@@ -1,5 +1,5 @@
 SHELL := /bin/bash
-PANDOC:=pandoc --normalize --smart --write=html5+yaml_metadata_block+footnotes --read=markdown --standalone  --section-divs -V title:scuttlebutt --template ./template.html
+PANDOC:=pandoc --normalize --smart --write=html5+yaml_metadata_block+footnotes --read=markdown --standalone  --section-divs -V title:scuttlebutt --template ./template.html --toc --toc-depth=2
 BROWSERIFY:=browserify -d js/index.js
 
 html/index.html: index.md html/bundle.js html/style.css html/assets/ add_containers.js

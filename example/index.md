@@ -50,17 +50,16 @@ Additionally, there is an etiquette for how gossip should happen.
 The vector clock allows sensible application of version numbers to all updates,
 and ensures that updates received by a node can be at least partially ordered
 by a `precedes` relation, which allows quick exchange about the most recent
-information you have seen. See [the next section](#the-vector-clock) for more
-detail on vector clocks
+information a given node has seen. 
 
 The history data structure keeps track of new updates as they come in, and
-allows them to be replayed on request.
+can replay all updates from a given node in chronological order upon request.
 
 Gossip between two peers begins by exchanging vector clocks-- each peer sends
-the other a list of highest version numbered update they've seen from everybody
+the other a list of highest version number they've seen  from each other node 
 in the network (including themselves). 
 
-Suppose ![pair](./assets/pair.svg) sends its vector clock to
+For example, suppose ![pair](./assets/pair.svg) sends its vector clock to
 ![red-pair](./assets/red-pair.svg). In that list there's the two-ple
 (![red-pair](./assets/red-pair.svg), 10), so ![red-pair](./assets/red-pair.svg)
 responds with all the updates it has heard about from itself (e.g. local
@@ -76,8 +75,9 @@ Scuttlebutt is cpu and network efficient, and **eventually** consistent.
 
 ## The Vector Clock##
 
-How do we version updates occuring across a distributed network? How does one
-node tell an update coming from a peer occured before a local update?
+How do we assign version numbers to updates occuring across a distributed
+network? How does one node tell an update coming from a peer occured before a
+local update?
 
 Scuttlebutt [partially orders](partial-ordering) updates by means of a [a vector
 clock][vector clock], described in full in [Lamport 1978][vector clock]. It
@@ -136,10 +136,7 @@ B: [1, 3]
 
 ## Conflict
 
-How do peers decided when to apply updates? In general, tehre is no simple
-answer here. Different concerns will necessitate different update rules.
-
-What happens if B encounters another local update?
+How do peers decided when to apply updates? What happens if B encounters another local update?
 
 ```
 A: [4, 3] 
@@ -162,44 +159,35 @@ Lamport recommends reading [*Dissemination of System Time* by Ellingson et
 al.][system time], but the paper remains behind a tall paywall[^system-time], so I haven't
 been able to read it.
 
-
 During my research (furious googling for the most part), heuristics proved the
 more common approach. Some are maddeningly arbitrary. For example,
-[Cassandra][], which uses scuttlebutt to propagate updates across its
-network, orders updates by their value. It gives primacy to `DELETE`
-operations, which is to say if `A` sent `DELETE key` to `B`, then no matter what the
-value of concurrent (as far as the vector clock is concerned) updates, `key` is deleted from the `B`'s store. If non-delete updates occur simultaneously, Cassandra saves the update which **is lexically larger**!  
+[Cassandra][], which uses scuttlebutt to propagate updates across its network,
+orders updates by their value. It gives primacy to `DELETE` operations, which
+is to say if `A` sent `DELETE key` to `B`, then no matter what the value of
+concurrent (as far as the vector clock is concerned) updates, `key` is deleted
+from the `B`'s store. If non-delete updates occur simultaneously, Cassandra
+saves the update which **is lexically larger**!  
 
 In the
 [scuttlebutt/model](https://github.com/dominictarr/scuttlebutt/blob/master/model.js)
-of [npm.im/scuttlebutt][], [\@dominictarr][dominic] [lexically
-compares][dominic-resolve] node names to resolve conflicts between nodes,
-essentially attributing credibility based on alphabetically sorting node
-names.
+of [npm.im/scuttlebutt][], [\@dominictarr][dominic] uses *last write wins*, and
+then [lexically compares][dominic-resolve] node names to resolve precedence 
+ambiguities, essentially attributing credibility based on alphabetically
+sorting node names.
 
-Like the [npm.im/scuttlebutt][] base class, [simple-scuttle][] leaves the
-definition of  the resolution function to the user, via a parameter to the
-constructor function called
-[`should_apply`](https://github.com/AWinterman/simple-scuttle#constructor).
-Conceivably, you could implement your own clock synchronization algorithm, and
-plug in its results here.
+Even if we can definitively determine which update happend most recently, 
+it is not at all clear that *last write wins* is the best way to determine
+whether an update should be applied. The constraints of the use case are going
+to determine the update rule, but it turns out this is a hard problem.  so
+*Simple-Scuttle* [leaves it to the client](https://github.com/AWinterman/simple-scuttle#constructor).
 
-## Relation to [npm.im/scuttlebutt][] and [*van Renesse et al.*][scuttlebutt]
+## Relation to npm.im/scuttlebuttand *van Renesse et al.*
 
-My implementation, and consequently this module,  was inspired by [Dominic
-Tarr's scuttlebut module][npm.im/scuttlebutt], which, though totally awesome, I
-found the source hard to parse, which was problematic for me since it was designed to be subclassed. I also found it difficult to draw parallels between [the paper][scuttlebutt] and this implementation. So I wrote my own.
-
-These two implementations should cover roughly the same ground, presenting two
-different APIs and implementations of the same concept.
-
-My goal in writing it was to gain a deeper understanding of the gossip
-protocol, as it pertains to concepts such as node.js's buffering streams. As
-such this module bears some fidelity to the paper--
-I intended to replicate terminology from the paper faithfully, subject of
-course to the restrictions imposed by the format and language (javascript
-rather than maths), although once I had internalized the concepts this ceased
-to be a conscious effort.
+My implementation, and consequently this module, was inspired by [Dominic
+Tarr's scuttlebut module][npm.im/scuttlebutt]. This module works, but
+I found the source hard to parse, which was problematic since it is 
+designed to be subclassed. I also found it difficult to draw parallels between
+[the paper][scuttlebutt] and this implementation. So I wrote my own.
 
 [^stream]: [Node Streams][node streams] abstractions built into the node core
 library for handling data over time. They present a unix-like api which allows
