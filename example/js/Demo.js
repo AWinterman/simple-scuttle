@@ -40,10 +40,10 @@ function translate(d) {
 }
 
 Demo.prototype.dim = function() {
+  console.log(this.el)
   var rect = this.el.getBoundingClientRect()
   this.width = rect.width
   this.height = rect.height
-
 
   if(!this.height || !this.width) {
     return false

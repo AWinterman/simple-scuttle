@@ -3,7 +3,7 @@ module.exports = interaction
 var Demo =  require('./Demo')
   , debounce = require('debounce')
 
-function interaction(el, network) {
+function interaction(el, network, gossip_type) {
   var demo = new Demo(sizzle('svg', el)[0], network)
 
   var going = false
@@ -21,21 +21,26 @@ function interaction(el, network) {
   window.addEventListener('scroll', debounce(onscroll))
   window.addEventListener('resize', debounce(resize))
 
-  setInterval(gossip_once, 200)
+  setInterval(gossip_once.bind(gossip_type), 200)
 
   function resize() {
     if(!going) {
-      demo.force.resume()
       demo.dim()
-      demo.force.stop()
     }
 
     demo.dim()
     demo.force.resume()
   }
 
-  function gossip_once() {
-    var i = Math.floor(Math.random() * demo.n)
+  function gossip_once(type) {
+    var i = 0
+
+    if(!type || type === 'random') {
+      i = Math.floor(Math.random() * demo.n)
+    } else if (type === 'sequential') {
+      i = (i + 1) % demo.n
+    }
+
 
     demo.node[0][i].__data__.gossip.gossip()
   }

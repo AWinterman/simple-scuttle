@@ -8,7 +8,9 @@
     "d3": "~3.3.10",
     "debounce": "0.0.3",
     "fps": "0.0.3",
-    "simple-scuttle": "~1.0.0"
+    "simple-scuttle": "~1.0.0",
+    "trumpet": "~1.6.3",
+    "concat-stream": "~1.2.1"
   },
   "devDependencies": {
     "hyperstream": "~0.4.0",

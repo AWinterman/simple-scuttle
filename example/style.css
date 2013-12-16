@@ -1,86 +1,65 @@
 body {
-  line-height: 1.25em;
-  font-family: courier-new;
+  line-height: 1.5em;
+  font-family: sans-serif;
+  font-weight: 200;
+  font-size: 18px;
 }
-
-ul {
-  margin-bottom: 0em;
-}
-
-aside {
-  margin-top: 0em;
-  margin-bottom: 0em;
-}
-
-.footnotes {
-  max-width: 35em;
-}
-
-sup {
-  vertical-align: super;
-  line-height: 0;
-}
-
 article {
-  display: flex;
-  flex-flow: column;
-  align-items: stretch;
   padding-bottom: 3em;
-  justify-content: center;
+}
+
+@supports (display: flex) and (flex-wrap: wrap) {
+  article {
+    display: flex;
+    flex-flow: column;
+    align-items: center;
+  }
+
+  section.container {
+    flex: 1 1 auto;
+    display: flex;
+    flex-flow: row;
+    justify-content: flex-end;
+    align-items: center;
+  }
+
+  section.container > section, .footnotes {
+    flex: 2 1 35em;
+  }
+
+  section.container > section.example {
+    flex: 0.1 1 auto;
+  }
 }
 
 section.container {
-  flex: 0.5 0.1 0;
-  height: 80%;
+  min-width: 35em;
   overflow: visible;
-  display: flex;
-  flex-flow: row-reverse;
-  justify-content: flex-start;
-  align-items: stretch; 
 }
 
-
-section.container > section.example.ring {
-  max-height: 20em;
-}
-
-section.container > section.example.random {
-  max-height: 30em;
-}
-
-section.container > section.example {
-  flex: 1 1 auto;
-}
-
-section.container > section.example.pair {
-  max-height: 10em;
-}
-
-
-
-article:last-child {
-  flex: 1 1 0;
-}
-
-section.footnotes {
-  align-self: flex-end;
-  flex: 1 1 0;
-}
-
-section.container > :first-child {
+section.container > section, .footnotes {
   padding: 1em;
   margin-top: 1em;
   max-width: 35em;
+  min-width: 35em;
   overflow: hidden;
-  flex: 2 0 0;
+  border: solid whitesmoke;
+  border-width: 0px;
+  border-left-width: 2px;
 }
 
 section.container > section.example {
-  flex: 1 0 0;
+  border: solid whitesmoke;
+  border-width: 0px;
+  border-left-width: 2px;
+  min-width: 35em;
+  max-height: 35em;
 }
+
 
 header {
   text-align: center;
+  margin-left: 10%;
 }
 header > .title{
   display: none;
@@ -102,10 +81,6 @@ header > .date strong {
   display: inline;
 }
 
-article > section.footnotes {
-  border: none;
-}
-
 svg .link {
   stroke-width: 2px;
   stroke: grey;
@@ -116,13 +91,21 @@ svg .node text.id {
   visibility: hidden;
   font-size: 1.5em;
   font-weight: 100;
-  stroke: white;
+  stroke: whitesmoke;
   fill: white;
   font-stretch: expanded;
 }
 
 svg .node:hover text.id {
   visibility: visible;
+}
+
+
+svg .node:active {
+  stroke: black;
+  stroke-width: 1px;
+  fill: white;
+  transition: fill 0.1s stroke-width: 0.1s;
 }
 
 svg {
@@ -165,7 +148,20 @@ h1 {
 }
 
 h2 {
+  margin-top: 0em;
   font-size: 1.5em;
+  font-style: oblique;
+}
+
+
+aside {
+  margin-top: 0em;
+  margin-bottom: 0em;
+}
+
+sup {
+  vertical-align: super;
+  line-height: 0;
 }
 
 a {
@@ -179,11 +175,6 @@ a:hover {
   color: #7BA6B4;
 }
 
-a:visited {
-  color: brown;
-  font-weight: 100;
-}
-
 a:hover:visited {
   text-decoration: underline;
   color: #7BA6B4;
@@ -191,7 +182,7 @@ a:hover:visited {
 
 img {
   vertical-align: middle;
-  height: 1em;
+  height: 1.5em;
 }
 
 img[alt=full] {
@@ -199,9 +190,21 @@ img[alt=full] {
   height: auto;
 }
 
-h4 {
+.level2 > aside.inline {
   text-align: center;
-  font-weight: 100;
-  text-size: 1em;
 }
 
+@media(max-width: 55em) {
+  article {
+    display: block;
+  }
+
+  section.container {
+    overflow: visible;
+    display: block;
+  }
+
+  .fps {
+    display: none;
+  }
+}

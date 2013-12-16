@@ -2,96 +2,97 @@
 % **[A Scuttlebutt Demo][scuttlebutt]**
 % with [d3 force directed layouts](https://github.com/mbostock/d3/wiki/Force-Layout) and node.js
 
-<aside>For best viewing, use chrome, opera or safari.</aside>
+<aside class="admonition">For best viewing, use chrome, opera or safari.</aside>
 
-## What is it? [&sect;](#history-and-compaction)##
+##What is it?##
 
-The [Scuttlebutt Gossip protocol][scuttlebutt] is a method for propagating
-state, which we take to be a mapping from keys to values, across a network. In
-general, the network could be any distributed system-- computers distributed in
-space, processes in a single computer, or as is the case here, svg polygons
-(![inline-ten](./assets/ten.svg)) in the DOM.
+This is a demo of *Simple-Scuttle*, a [Javascript implementation][simple-scuttle]
+of the Scuttlebutt gossip protocol as it is described in [van Renesse et
+al.][scuttlebutt].  *Simple-Scuttle* builds on the
+[node.js](http://nodejs.org/) core library, leveraging node streams[^stream] to
+manage data over time, meaning it plays well with other elements of node
+core, like `http` or `tcp`.
 
-The examples here rely on a [Javascript implementation][simple-scuttle], called
-*Simple-Scuttle*, of the gossip protocol. *Simple-Scuttle* defines a prototype
-which inherits from node.js streams[^stream]. The brightly colored force directed graphs are visualizations of the protocol in action.
+[Scuttlebutt][scuttlebutt] is a protocol for flow control and efficient
+reconciliation-- meaning it propagates information across a network, and does
+it well. In general, the network could be any distributed system-- computers
+distributed in space, processes in a single machine, or as is the case here,
+svg polygons (![inline-ten](./assets/ten.svg)) in the DOM.
 
-## Visualization Details ##
-
-The accompanying visualization of the protocol uses polygons, 
-![pair](./assets/pair.svg), ![ten](./assets/ten.svg), or ![twenty](./assets/twenty.svg),
-to for nodes in the network. The network propagates the number of times each
-node has been clicked. The mapping from node id to click count is
-the state in this instance.
-
-Each polygon keeps track of the number of times *it* has been clicked, but must
-learn about the number of times *every other* polygon has been clicked through
-gossip. The polygon has a representation as an object in the DOM with a
-*Simple-Scuttle* class instance attribute, which has been set through the DOM's
-javascript api.
+Polygons, ![pair](./assets/pair.svg), ![ten](./assets/ten.svg), or
+![twenty](./assets/twenty.svg) represent nodes in the network. In the toy
+examples here, each node is responsible for a single value - the number of
+times it has been clicked - and each node reports that value to the nodes with
+which it shares an edge.
 
 **Click on a node to update its state!**
 
 The state at each node is represented by the polygon's shape- there is one
-point per node in the network, so ![pair](./assets/pair.svg) describes a network
-with two nodes in it, and ![ten](./assets/ten.svg) a network with ten. When the
-user clicks on a node, its corresponding point distends, 
+point per node in the network, so ![pair](./assets/pair.svg) describes the
+initial the state of a network with two nodes in it, and
+![ten](./assets/ten.svg) a network with ten. When the user clicks on a node,
+its corresponding point distends, 
 
-####so after a few clicks, ![full](./assets/pair.svg) might turn into ![full](./assets/distended-pair.svg).####
+<aside class=inline>so after a few clicks, ![full](./assets/pair.svg) might turn into ![full](./assets/distended-pair.svg).</aside>
 
-Edges between ![ten](./assets/ten.svg) indicate the *Simple-Scuttle* attatched to
-the dom element can share information about their state with one another. There
-is no other way one node can learn the state of another.
-
-## The Protocol [&sect;](#history-and-compaction) ##
+## The Protocol##
 
 *I recommend reading the [paper][scuttlebutt] for the full story, including a
-discussion of it's performance characteristics.*
+discussion of Scuttlebutt's performance characteristics.*
 
 There are essentially three data structures to Scuttlebutt-- some sort of store
-for the state, a [vector clock](http://npm.im/vector-clock-class) which helps
+for the state, a [vector clock](http://npm.im/vector-clock-class),  which helps
 determine what updates to ask for, and a structure for replaying, compacting,
 and holding on to
 [history](https://github.com/AWinterman/simple-scuttle/blob/master/lib/history.js).
-Additionally, there is an ettiquette for how gossip should happen.
+Additionally, there is an etiquette for how gossip should happen.
 
-The vector clock ensures that updates received by a node can be at least
-partially ordered by a `precedes` relation, which allows quick exchange about
-the most recent information you have seen. The history structure ensures
-that you can tell your peer the news when you have heard something they have
-not.
+The vector clock allows sensible application of version numbers to all updates,
+and ensures that updates received by a node can be at least partially ordered
+by a `precedes` relation, which allows quick exchange about the most recent
+information you have seen. See [the next section](#the-vector-clock) for more
+detail on vector clocks
+
+The history data structure keeps track of new updates as they come in, and
+allows them to be replayed on request.
 
 Gossip between two peers begins by exchanging vector clocks-- each peer sends
 the other a list of highest version numbered update they've seen from everybody
 in the network (including themselves). 
 
 Suppose ![pair](./assets/pair.svg) sends its vector clock to
-![red-pair](./assets/red-pair.svg). In that list there's the pair
-(![red-pair](./assets/red-pair.svg), 10). ![red-pair](./assets/red-pair.svg) responds with
-all the updates it has seen locally which are greater than 10, ordering them in
-chronological order. If there are more updates than fit in bandwidth, then are
-simply omitted until the next round of communication, when the two nodes will
-begin where they left off.
+![red-pair](./assets/red-pair.svg). In that list there's the two-ple
+(![red-pair](./assets/red-pair.svg), 10), so ![red-pair](./assets/red-pair.svg)
+responds with all the updates it has heard about from itself (e.g. local
+updates) with version numbers greater than 10, ordering them in chronological order.
+![red-pair](./assets/red-pair.svg) sends them one at a time until it has sent them
+all, or exceeded the its bandwidth. The next time
+![red-pair](./assets/red-pair.svg) and ![pair](./assets/pair.svg)  gossip, they will
+again exchange vector clocks, which will ensure that they neither repeate
+themselves nor leave anything out. This extends directly to a more complicated
+network, since gossip is always pairwise.
 
 Scuttlebutt is cpu and network efficient, and **eventually** consistent.
 
-## Versioning [&sect;](#conflicts)##
+## The Vector Clock##
 
-How do peers decided when to apply updates? How do they know an update occuring
-elsewhere happened before their own update? Scuttlebutt applies a partial
-ordering on updates by means of a [a vector clock][vector clock], described in
-full in [Lamport 1978][vector clock]. It works, more or less as follows:
+How do we version updates occuring across a distributed network? How does one
+node tell an update coming from a peer occured before a local update?
 
-Suppose peers `A`, `B` must exhange updates. They will each maintain a vector
-of logical times for each peer. Logical time refers to the number of events the
-peer has seen.  This vector is called the `clock`, and is updated  according to
-the following two rules (IR1 and IR2 from [the paper][vector clock]):
+Scuttlebutt [partially orders](partial-ordering) updates by means of a [a vector
+clock][vector clock], described in full in [Lamport 1978][vector clock]. It
+works, more or less as follows:
 
-1. Each peer must update it's own entry in the list between any two updates
-2. If A sends an update to B, it must also send along the logical time, `t`, at which the update occured.
-   Upon receive the update, B updates A's entry in its own clock to `t`, and then ensures its own
-   entry in its clock is greater than `t`.
+Suppose nodes `A`, `B` must exhange updates. Each node maintains a vector,
+called the `clock` of logical times[^logical-time] for each node in the
+network. The `clock` is updated according to the following two rules (IR1 and
+IR2 from [the paper][vector clock]):
 
+1. Each peer must update it's own entry in the vector between any two updates
+2. If A sends an update to B, it must also send along the logical time, `t`, at
+   which the update occured.  Upon receive the update, B updates A's entry in
+   its own clock to `t`, and then ensures its own entry in its clock is greater
+   than `t`.
 
 In the beginning, they each maintain a vector clock that looks like this:
 
@@ -107,11 +108,11 @@ A : [1, 0]
 B : [0, 0]
 ```
 
-When A gossips with B, it sends an update along with the version number at
-which the update occured, in this case `1`. B applies the
-update since it has a version number since `1` is higher than the most recent
-time it has seen. It also increments its own version number to be one higher
-than A's. Note that no event is marked with time 2.
+When `A` gossips with `B`, it sends an update along with the version number at
+which the update occured, in this case `1`. `B` updates the entry in the clock
+corresponding to `A`. It also increments its own entry in its clock to be one
+higher than `A`'s. Note that no individual update is marked with time 2, and
+none will be.
 
 ```
 A : [1, 0] 
@@ -133,7 +134,10 @@ A: [4, 3]
 B: [1, 3]
 ```
 
-## Conflict ##
+## Conflict
+
+How do peers decided when to apply updates? In general, tehre is no simple
+answer here. Different concerns will necessitate different update rules.
 
 What happens if B encounters another local update?
 
@@ -180,7 +184,7 @@ constructor function called
 Conceivably, you could implement your own clock synchronization algorithm, and
 plug in its results here.
 
-## Relation to [npm.im/scuttlebutt][] and _[van Renesse et al.][scuttlebutt]_ [&sect;](#relation-to-npm.imscuttlebutt-and-van-renesse-et-al.scuttlebutt) ##
+## Relation to [npm.im/scuttlebutt][] and [*van Renesse et al.*][scuttlebutt]
 
 My implementation, and consequently this module,  was inspired by [Dominic
 Tarr's scuttlebut module][npm.im/scuttlebutt], which, though totally awesome, I
@@ -197,11 +201,15 @@ course to the restrictions imposed by the format and language (javascript
 rather than maths), although once I had internalized the concepts this ceased
 to be a conscious effort.
 
-
 [^stream]: [Node Streams][node streams] abstractions built into the node core
 library for handling data over time. They present a unix-like api which allows
 one to write to sinks, read from sources, and pipe sources to sinks. They are
 available in the browser via [browserify][].&nbsp;
+
+[^logical-time]: Logical time, as distinct from physical time, is essentially
+the count of events witnessed by the node. Physical time is somewhat
+similar&mdash; seconds count the number of times a physical clock's second hand
+ticked, or the number of particles emitted from an atom. 
 
 [^system-time]: If anyone has contact information for the author, or is able to
 grant legitimate free access to the paper, please [contact
@@ -218,4 +226,5 @@ me](https://twitter.com/andywinterman).&nbsp;
 [system time]: http://ieeexplore.ieee.org/xpl/login.jsp?tp=&arnumber=1091674&url=http%3A%2F%2Fieeexplore.ieee.org%2Fxpls%2Fabs_all.jsp%3Farnumber%3D1091674
 [node streams]: http://nodejs.org/api/stream.html
 [browserify]: http://browserify.org/
+[partial-ordering]: http://en.wikipedia.org/wiki/Partially_ordered_set
 

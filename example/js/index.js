@@ -27,40 +27,25 @@ ticker.on('data', function(framerate) {
 var sections = sizzle('section')
   , article = document.querySelector('article')
 
-for(var i = 0; i < sections.length; ++i) {
-  sections[i].outerHTML = '<section class="container">' + sections[i].outerHTML  + '</section>'
-}
+sections = sizzle('.container .example')
 
-sections = sizzle('.container')
-
-var pair = create_demo('example pair')
-var pair_conflict = create_demo('example pair conflict')
-var ring = create_demo('example ring')
-var ring_conflict = create_demo('example ring conflict')
-var random = create_demo('example random')
-var random2 = create_demo('example random')
-
-sections[0].appendChild(pair)
-sections[1].appendChild(ring)
-sections[2].appendChild(random2)
-sections[3].appendChild(random)
-sections[4].appendChild(ring_conflict)
-sections[5].appendChild(pair_conflict)
+var networks = [
+    new networks.Ring(10)
+  , new networks.Pair()
+  , new networks.Random(20)
+  , new networks.PairConflict()
+  , new networks.RingConflict(10)
+]
 
 setTimeout(function() {
-  interaction(pair, new networks.Pair())
-  interaction(pair_conflict, new networks.PairConflict())
-  interaction(ring, new networks.Ring(10))
-  interaction(ring_conflict, new networks.RingConflict(10))
-  interaction(random, new networks.Random(20))
-  interaction(random2, new networks.Random(10))
+  for(var i = 0, len = Math.max(networks.length, sections.length); i < len; ++i) {
+    var method
+    if(i == 1) {
+      method = 'sequential'
+    }
+
+    interaction(sections[i], networks[i], method)
+  }
 }, 1)
 
-function create_demo(classname) {
-  var demo = document.createElement('section')
 
-  demo.className = classname
-  demo.innerHTML = '<svg></svg>'
-
-  return demo
-}

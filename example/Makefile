@@ -2,9 +2,9 @@ SHELL := /bin/bash
 PANDOC:=pandoc --normalize --smart --write=html5+yaml_metadata_block+footnotes --read=markdown --standalone  --section-divs -V title:scuttlebutt --template ./template.html
 BROWSERIFY:=browserify -d js/index.js
 
-html/index.html: index.md html/bundle.js html/style.css html/assets/
+html/index.html: index.md html/bundle.js html/style.css html/assets/ add_containers.js
 	echo '<script type="text/javascript" src="./bundle.js" async></script>' > html/bundle.html
-	$(PANDOC) --include-in-header=html/bundle.html -c style.css index.md > html/index.html
+	$(PANDOC) --include-in-header=html/bundle.html -c style.css index.md | ./add_containers.js > html/index.html
 	rm html/bundle.html
 
 html/bundle.js: js/* ../lib/gossip.js
@@ -28,12 +28,9 @@ install:
 
 prod: 
 	$(PANDOC) -V include-after:"<script class=bundle></script>" -V header-includes:"<style class=style></style>" index.md > html/temp.html
-	node add-assets.js  > html/index.html
-	cp html/index.html ../.git/index.html
-	cp -r html/assets ../.git/assets.html
+	cp -r html/ ../.git/html
 	git checkout gh-pages
-	cp ../.git/index.html ../index.html
-	cp -r ../.git/assets.html ../assets/
-	git add ../index.html ../assets
+	cp -r ../.git/html/* ..
+	git add assets/* index.html bundle.js style.css
 	git commit -a -m "update"
 
