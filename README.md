@@ -50,6 +50,17 @@ whether or not a given update should be applied.
 signature as javascripts
 [Array.sort](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort), and will be called by Array.sort under the hood.
 
+# Admonition #
+
+The `should_apply` function is one of the most consequential decisions you will
+make when constructing your distributed system. Please make an informed
+decision two. In 2.0.0 it will no longer take a default argument-- investigate:
+http://aphyr.com/posts/299-the-trouble-with-timestamps,
+http://aphyr.com/posts/286-call-me-maybe-final-thoughts, or
+http://pagesperso-systeme.lip6.fr/Marc.Shapiro/papers/RR-6956.pdf. You will
+encounter concurrent updates across your system, and how you manage them will
+determine the reliability and persistence of your data.
+
 ## Expected Objects ##
 
 Gossip instances expect objects written to them (with `gossip.write`) to either be `digest`s or `delta`s. Note that `delta`s are also referred to as `updates`.
