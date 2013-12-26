@@ -5,11 +5,6 @@ Replicate state across a network with the scuttlebutt protocol.
 [![Build
 Status](https://travis-ci.org/AWinterman/simple-scuttle.png?branch=master)](https://travis-ci.org/AWinterman/simple-scuttle)
 
-See [the To Do section](#todo) for outstanding tasks.
-
-Check out the [demo](http://awinterman.github.io/simple-scuttle/) for some
-higher level discussions of this implementation.
-
 I recommend you at least skim the [paper][] which describes the
 protocol before continuing too much further.
 
@@ -30,31 +25,31 @@ documented in the [Expected Objects](#expected-objects) section.
 ## Constructor ##
 
 ```js
-Gossip(
-    String id
-  , Integer mtu | null
-  , Integer max_history | null
-  , Function should_apply | null
-  , Function sort | null
-) -> gossip
+Gossip(String id, Object config) -> gossip
 ```
  
 - `id`: The unique identifier for each `Gossip` instance.  
-- `mtu`: Stands for Maximum Transmission Unit. Determines how many messages the
-network can handle at once-- this is used to set
-[opts.highWaterMark](http://nodejs.org/api/stream.html#stream_new_stream_readable_options). 
-- `max_history`: How many updates to store before we begin to forget old ones. Such concerns are absent from the paper, but they seem important to me. Defaults to 10 if falsey.
-- `should_apply` `(gossip, update)` -> `Boolean`: A function which determines
-whether or not a given update should be applied.
-- `sort`: A function which describes how to order updates. Has the same
-signature as javascripts
-[Array.sort](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort), and will be called by Array.sort under the hood.
+- `config`: an Object which must have the following properties:
+  - `config.mtu`: Stands for Maximum Transmission Unit. Determines how many
+    messages the network can handle at once-- this is used to set
+    [opts.highWaterMark](http://nodejs.org/api/stream.html#stream_new_stream_readable_options). 
+  - `config.max_history`: How many updates to store before we begin to forget
+    old ones. Such concerns are absent from the paper, but they seem important
+    to me. Defaults to 10 if falsey.
+  - `config.resolve` `(gossip, update)` -> `Boolean`: A function which
+    determines whether or not a given update should be applied.
+  - `config.sort`: A function which describes how to order updates. Has the
+    same signature as javascripts
+    [Array.sort](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort),
+    and will be called by Array.sort under the hood. This function is used to
+    order updates when another Gossip instance requests updates more recent
+    than a given version number.
 
 # Admonition #
 
-The `should_apply` function is one of the most consequential decisions you will
+The `config.resolve` function is one of the most consequential decisions you will
 make when constructing your distributed system. Please make an informed
-decision two. In 2.0.0 it will no longer take a default argument-- investigate:
+decision. In 2.0.0 it will no longer take a default argument-- investigate:
 http://aphyr.com/posts/299-the-trouble-with-timestamps,
 http://aphyr.com/posts/286-call-me-maybe-final-thoughts, or
 http://pagesperso-systeme.lip6.fr/Marc.Shapiro/papers/RR-6956.pdf. You will
@@ -63,45 +58,46 @@ determine the reliability and persistence of your data.
 
 ## Expected Objects ##
 
-Gossip instances expect objects written to them (with `gossip.write`) to either be `digest`s or `delta`s. Note that `delta`s are also referred to as `updates`.
+Gossip instances expect objects written to them (with `gossip.write`) to either
+be `digest`s or `updates`s.
 
 ####digests####
 
 ```js
-var digest = {
-    digest: true
-  , source_id: source_id
-  , version: last_seen_version_for_source_id
-}
+var digest
 
-if(no_more_digests) {
-  digest.done = true
+if(more_digest) {
+   digest = {
+        digest: true
+      , source_id: source_id
+      , version: last_seen_version_for_source_id
+   }
+ } else {
+  digest = { 
+      digest: true 
+    , done: true
+  }
 }
 ```
 
 The assumption is that a digest object is sent from one node  to another, and
 specifies what information the receiver should send back to the sender (all
-deltas the receiver has seen for the specified source node, with version
+updates the receiver has seen for the specified source node, with version
 number greater than `digest.version`). Upon receiving a digest, the
-receiver queues all such deltas into its Readable buffer.
+receiver queues all such updates into its Readable buffer.
 
-If `!!digest.done` is true, then the receiver will also send back delta on any
-peers it knows about that the sender did not mention since the last time an
-object  satisfying `obj.done && obj.digest` was written to the stream. This
-permits the number of keys in the state to dynamically grow over time. Note
-that once a new key is added, there is currently no way to delete it appart
-from calling `delete Gossip.state[key]` at every node, and then handling
-`digest` objects asking for `key` appropriately. This is unsafe-- I'd
-avoid designing a system in which the number of keys can grow without bound.
-Implementing a safe delete method remains a [To Do](#todo)
+If `!!digest.done` is true, then the receiver will also send back updates on any
+peers it knows about that have version number greater than the version in the
+digest. They will be ordered according to `config.sort`, (updated each time
+history is updated).
 
-####deltas####
-The other kind of object, the delta, is an object that appears like the
+####updates####
+The other kind of object, the update, is an object that appears like the
 following:
 
 ```js
 
-var delta = {
+var update = {
     key: 'age'
   , value: 100
   , source_id: '#A'
@@ -109,9 +105,10 @@ var delta = {
 }
 ```
 
-This says: "source `source_id` thought `key` mapped to `value` at `version`."
-The `should_apply` argument allows the user to specify whether or not this
-update should be applied.
+This says: "source `update.source_id` thought `update.key` mapped to
+`update.value` at version `update.version`." The `config.resolve` is a function
+that takes an update and the gossip instance and determines whether the gossip
+instance should include the update.
 
 ## Methods ##
 
@@ -122,7 +119,7 @@ documentation. In addition, there are a few methods specific to this purpose:
 
 ###`Gossip.set(key, value) -> Boolean`###
 
-This method applies a local delta, simply setting the given key to the given
+This method applies a local update, simply setting the given key to the given
 value in the local instance, and tacking on the appropriate `version` number and
 `source_id`. It's return value indicates whether the underlying stream has hit
 its high water mark. If the return value is `false`, do not write until
@@ -139,7 +136,7 @@ A method  which provides convenient lookup for arbitrary keys. If
 
 Causes `Gossip` to queue a randomly sorted set of `digest` objects into its
 Readable buffer. If another `Gossip` stream reads these, it will respond
-with a series of `delta` objects. See [Expected Object](#expected-objects) for
+with a series of `update` objects. See [Expected Object](#expected-objects) for
 information on the shape of the objects. 
 
 `.gossip` will not write to the underlying stream past the highWaterMark, i.e.
@@ -162,30 +159,30 @@ from other instances)
 
 ###`Gossip.history`###
 
-An object for keeping track of deltas, and replaying deltas from a given peer
-on demand. `delta` objects are transmitted individually via the `Gossip`'s
+An object for keeping track of updates, and replaying updates from a given peer
+on demand. `update` objects are transmitted individually via the `Gossip`'s
 streaming methods. 
 
 #### Events ####
 `Gossip.history` is an event emitter, which emits two events:
 
 - `"update"`: Any time an update is applied, the `"update"` event is emitted,
-with the [`update`](#delta) to be applied.
+with the [`update`](#update) to be applied.
 
-- `"compaction"`: If the number of deltas recorded in the history exceeds the `max_history` parameter, the `"compaction"` event is emitted prior to removing old deltas from the history. This way the client can implement more dramatic compaction, making their own tradeoffs between performance, replayability, and speed.
+- `"compaction"`: If the number of updates recorded in the history exceeds the `max_history` parameter, the `"compaction"` event is emitted prior to removing old updates from the history. This way the client can implement more dramatic compaction, making their own tradeoffs between performance, replayability, and speed.
 
 ####`Gossip.history.write(key, value, source_id, version)`####
 
-Write a new delta to the history. The delta is recorded into
-`Gossip.history.memory`, an array of deltas, which is then sorted via `sort`
+Write a new update to the history. The update is recorded into
+`Gossip.history.memory`, an array of updates, which is then sorted via `sort`
 argument to the `Gossip` constructor. Next `Gossip.history` emits an `"update"`
-event is emitted with the delta as its argument. This event is emitted to allow
+event is emitted with the update as its argument. This event is emitted to allow
 the client to take action prior to pruning the `memory` array to
 `max_history`'s length.
 
-####`Gossip.history.news(id, version)` -> [`Array Deltas`](#deltas)####
+####`Gossip.history.news(id, version)` -> [`Array updates`](#updates)####
 
-Returns an array of `delta`s which came from a source with unique identifier
+Returns an array of `update`s which came from a source with unique identifier
 matching `id`, and which occurred after `version`.
 
 # TODO: #

@@ -1,6 +1,11 @@
 var Gossip = require('../lib/gossip')
+  , defaults = require('../lib/base')
   , Stream = require('stream')
   , test = require('tape')
+  , config
+
+config = defaults.config
+config.resolve = defaults.resolution.lww_vs_clock
 
 test('Integration test via readable calls', readable)
 
@@ -43,7 +48,11 @@ test(
 )
 
 function verify_mtu(assert) {
-  var A = new Gossip('#A', 2, 1)
+  var new_config = Object.create(config)
+  new_config.mtu = 1
+  new_config.max_history = 4
+
+  var A = new Gossip('#A', new_config)
 
   var expected = ['Doctor', 'Who', 'Just', 'Me']
 
@@ -76,7 +85,7 @@ function verify_mtu(assert) {
 }
 
 function readable(assert) {
-  var A = new Gossip('#A')
+  var A = new Gossip('#A', config)
 
   // always ask for just the newest data.
   var local_updates = [
@@ -146,10 +155,15 @@ function readable(assert) {
 }
 
 function everyone_their_own(mtu, buffer, assert) {
-  var A = new Gossip('#A', mtu, buffer)
-    , B = new Gossip('#B', mtu, buffer)
-    , C = new Gossip('#C', mtu, buffer)
-    , D = new Gossip('#D', mtu, buffer)
+  var new_config = Object.create(config)
+
+  new_config.mtu = mtu
+  new_config.max_history = buffer
+
+  var A = new Gossip('#A', config)
+    , B = new Gossip('#B', config)
+    , C = new Gossip('#C', config)
+    , D = new Gossip('#D', config)
 
   var gossips = [A, B, C, D]
     , awaiting_drain = []
@@ -220,10 +234,14 @@ function everyone_their_own(mtu, buffer, assert) {
 }
 
 function can_pipe(mtu, buffer, assert) {
-  var A = new Gossip('#A', mtu, buffer)
-    , B = new Gossip('#B', mtu, buffer)
-    , C = new Gossip('#C', mtu, buffer)
-    , D = new Gossip('#D', mtu, buffer)
+  var new_config = Object.create(config)
+
+  config.mtu = mtu
+  config.max_history = buffer
+  var A = new Gossip('#A', config)
+    , B = new Gossip('#B', config)
+    , C = new Gossip('#C', config)
+    , D = new Gossip('#D', config)
 
   var key = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     , val = 'abcdefghij'
