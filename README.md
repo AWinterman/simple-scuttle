@@ -57,7 +57,9 @@ function compact(memory, history_instance)  {
 - `base.config`: The default config object, described in detail below.
 - `base.resolution`: Some sample conflict resolution functions.
 
-This is a module, [./lib/base.js](), with some sample defaults.
+This is a module,
+[lib/base.js](https://github.com/AWinterman/simple-scuttle/blob/master/lib/base.js),
+with some sample defaults.
 
 ### `require('simple-scuttle').Gossip` ###
 
