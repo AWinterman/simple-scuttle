@@ -5,7 +5,7 @@ var Gossip = require('../lib/gossip')
   , config
 
 config = defaults.config
-config.resolve = defaults.resolution.lww_vs_clock
+config.resolve = defaults.resolution.lww_vs_current_vers
 
 test('Integration test via readable calls', readable)
 
@@ -251,19 +251,11 @@ function can_pipe(mtu, buffer, assert) {
   B.pipe(C).pipe(B)
   A.pipe(D).pipe(A)
 
-  var tester = Stream.Writable({objectMode: true})
-
-  tester._write = function(data, enc, cb) {
-    cb()
-  }
-
-  A.pipe(tester)
-
   var go = setInterval(gossip, 100)
 
   function verify() {
-
     clearInterval(go)
+
     var expected = {
         1: 'a'
       , 2: 'b'

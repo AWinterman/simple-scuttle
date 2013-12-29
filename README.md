@@ -22,7 +22,44 @@ documented in the [Expected Objects](#expected-objects) section.
 
 # API #
 
-## Constructor ##
+```js
+var deserializer = require('desrializer')
+  , scuttle = require('simple-scuttle')
+  , serializer = require('serializer')
+  , fs = require('fs')
+
+persist = fs.createWriteStream('/path/to/logs', {flag: 'a'})
+
+var peer_io = // a stream which sends and receives messages from the peer.
+  , config  = scuttle.base.config
+
+config.resolve = base.resolution.strictly_order_values
+
+var gossip = new scuttle.Gossip('id', config)
+
+gossip.pipe(serializer).pipe(peer_io).pipe(deserializer).pipe(gossip)
+
+gossip.history.on('update', function(update) {
+  persist.write(serializer.serialize(update))
+})
+
+gossip.history.on('compaction', compact)
+
+function compact(memory, history_instance)  {
+  /* Resolve history to be more compact somehow */
+}
+```
+
+## Exports ##
+
+### `require('simple-scuttle').base` ###
+
+- `base.config`: The default config object, described in detail below.
+- `base.resolution`: Some sample conflict resolution functions.
+
+This is a module, [./lib/base.js](), with some sample defaults.
+
+### `require('simple-scuttle').Gossip` ###
 
 ```js
 Gossip(String id, Object config) -> gossip
@@ -49,12 +86,17 @@ Gossip(String id, Object config) -> gossip
 
 The `config.resolve` function is one of the most consequential decisions you will
 make when constructing your distributed system. Please make an informed
-decision. In 2.0.0 it will no longer take a default argument-- investigate:
-http://aphyr.com/posts/299-the-trouble-with-timestamps,
-http://aphyr.com/posts/286-call-me-maybe-final-thoughts, or
-http://pagesperso-systeme.lip6.fr/Marc.Shapiro/papers/RR-6956.pdf. You will
-encounter concurrent updates across your system, and how you manage them will
-determine the reliability and persistence of your data.
+decision. Investigate:
+
+- http://aphyr.com/posts/299-the-trouble-with-timestamps,
+- http://aphyr.com/posts/286-call-me-maybe-final-thoughts,
+- http://pagesperso-systeme.lip6.fr/Marc.Shapiro/papers/RR-6956.pdf.
+
+You will encounter concurrent updates across your system, and how you manage
+them will determine the reliability and persistence of your data.
+
+Note that regardless of this function, every valid update (updates to any value
+that is not on Object.prototype) will be written to history.
 
 ## Expected Objects ##
 
