@@ -25,12 +25,3 @@ install:
 	@command -v pandoc || echo "No pandoc, Please install pandoc and make sure it is on your path"
 	mkdir -p html
 	npm install
-
-prod: 
-	$(PANDOC) -V include-after:"<script class=bundle></script>" -V header-includes:"<style class=style></style>" index.md > html/temp.html
-	cp -r html/ ../.git/html
-	git checkout gh-pages
-	cp -r ../.git/html/* ../
-	git add ../assets/* ../index.html ../bundle.js ../style.css
-	git commit -a -m "update"
-
