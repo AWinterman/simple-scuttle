@@ -113,10 +113,10 @@ svg .node:active {
 }
 
 svg {
-  min-width: 10em;
-  min-height: 10em;
-  max-height: 45em;
-  max-width: 35em;
+  /* min-width: 10em; */
+  /* min-height: 10em; */
+  height: 45em;
+  width: 35em;
 }
 
 pre {
