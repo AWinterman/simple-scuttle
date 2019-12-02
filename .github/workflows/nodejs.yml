@@ -1,5 +1,4 @@
-name: Node CI
-
+name: test
 on: [push]
 
 jobs:
