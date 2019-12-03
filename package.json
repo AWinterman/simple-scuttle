@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "tap test/"
+    "test": "tap test/",
+    "posttest": "tap --coverage-report=text-lcov | codecov"
   },
   "repository": {
     "type": "git",
@@ -13,9 +14,10 @@
   "author": "Andrew Winterman",
   "license": "MIT",
   "devDependencies": {
-    "through": "~2.3.4",
+    "codecov": "^3.6.1",
+    "tap": "14.10.2",
     "tape": "~2.1.0",
-    "tap": "14.10.2"
+    "through": "~2.3.4"
   },
   "dependencies": {
     "vector-clock-class": "~1.1.1"
