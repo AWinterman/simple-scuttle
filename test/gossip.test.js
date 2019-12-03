@@ -47,6 +47,11 @@ test(
   , everyone_their_own.bind(null, 1, 30)
 )
 
+test(
+    'can gossip with self', 
+    trivial_case
+)
+
 function verify_mtu(assert) {
   var new_config = Object.create(config)
   new_config.mtu = 1
@@ -56,32 +61,24 @@ function verify_mtu(assert) {
 
   var expected = ['Doctor', 'Who', 'Just', 'Me']
 
+  var result = []
+    , i = 0
+
+  A.on('data', (data) => result.push(data.value))
+  A.on('data', (data) => ++i)
+  A.on('data', (data) => {if (i >= 4) {
+      assert.deepEqual(result, expected)
+      assert.deepEqual(A.state.name.value, 'Me')
+      assert.end()
+  }})
+
+    
   A.write({key: 'name', value: 'Doctor'})
   A.write({key: 'name', value: 'Who'})
   A.write({key: 'name', value: 'Just'})
   A.write({key: 'name', value: 'Me'})
-
-  var result = []
-    , i = 0
-
-  A.on('readable', function() {
-
-    while(true) {
-      var ith_result = A.read()
-      if(!ith_result) {
-        break
-      }
-      assert.deepEqual(ith_result.value, expected[i])
-      i++
-    }
-
-    if(i === 4) {
-      assert.end()
-    }
-
-  })
-
   A.write({ source_id: '#A', version: -10, digest: true, done: true })
+
 }
 
 function readable(assert) {
@@ -167,6 +164,11 @@ function everyone_their_own(mtu, buffer, assert) {
 
   var gossips = [A, B, C, D]
     , awaiting_drain = []
+
+  A.pipe(B).pipe(A)
+  B.pipe(C).pipe(B)
+  C.pipe(D).pipe(C)
+  D.pipe(B).pipe(A)
 
   for(var i = 0, len = gossips.length; i < len; ++i) {
 

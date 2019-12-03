@@ -15,7 +15,7 @@
   "devDependencies": {
     "through": "~2.3.4",
     "tape": "~2.1.0",
-    "tap": "~0.4.4"
+    "tap": "14.10.2"
   },
   "dependencies": {
     "vector-clock-class": "~1.1.1"
