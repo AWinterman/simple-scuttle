@@ -4,9 +4,6 @@
 
 Replicate state across a network with the scuttlebutt protocol.
 
-[![Build
-Status](https://travis-ci.org/AWinterman/simple-scuttle.png?branch=master)](https://travis-ci.org/AWinterman/simple-scuttle)
-
 I recommend you at least skim the [paper][] which describes the
 protocol before continuing too much further.
 
@@ -107,7 +104,7 @@ that is not on Object.prototype) will be written to history.
 Gossip instances expect objects written to them (with `gossip.write`) to either
 be `digest`s or `updates`s.
 
-####digests####
+#### digests ####
 
 ```js
 var digest
@@ -137,7 +134,7 @@ peers it knows about that have version number greater than the version in the
 digest. They will be ordered according to `config.sort`, (updated each time
 history is updated).
 
-####updates####
+#### updates ####
 The other kind of object, the update, is an object that appears like the
 following:
 
@@ -163,7 +160,7 @@ Streams](http://nodejs.org/api/stream.html#stream_class_stream_transform_1), so
 they implement all of the methods and events as described in the node core
 documentation. In addition, there are a few methods specific to this purpose:
 
-###`Gossip.set(key, value) -> Boolean`###
+### `Gossip.set(key, value) -> Boolean` ###
 
 This method applies a local update, simply setting the given key to the given
 value in the local instance, and tacking on the appropriate `version` number and
@@ -171,14 +168,14 @@ value in the local instance, and tacking on the appropriate `version` number and
 its high water mark. If the return value is `false`, do not write until
 `Gossip` has emitted a `"drain"` event. 
 
-###`Gossip.get(key) -> {version: <version>, value: <obj>} `###
+### ` Gossip.get(key) -> {version: <version>, value: <obj>}` ###
 
 A method  which provides convenient lookup for arbitrary keys. If
 `Gossip.state` has no entry for a given key, this method returns 
 `{version:  -Infinity, value: null}`. Otherwise it returns `{version: version,
   value: value}`
 
-###`Gossip.gossip() -> null`###
+### `Gossip.gossip() -> null` ###
 
 Causes `Gossip` to queue a randomly sorted set of `digest` objects into its
 Readable buffer. If another `Gossip` stream reads these, it will respond
@@ -192,18 +189,18 @@ returns false.
 
 ## Attributes ##
 
-###`Gossip.state`###
+### `Gossip.state` ###
 As specified in the [paper][], state is a
 key-value map (modeled as a native javascript object), available in the
 `.state` attribute of a `Gossip` instance. Each key maps to a value and a
 version number, so `state[key]` -> `{version: version, value: value}`
 
-###`Gossip.version`###
+### `Gossip.version` ###
 
 The highest version number the `Gossip` instance has seen (both locally and
 from other instances)
 
-###`Gossip.history`###
+### `Gossip.history` ###
 
 An object for keeping track of updates, and replaying updates from a given peer
 on demand. `update` objects are transmitted individually via the `Gossip`'s
@@ -217,7 +214,7 @@ with the [`update`](#update) to be applied.
 
 - `"compaction"`: If the number of updates recorded in the history exceeds the `max_history` parameter, the `"compaction"` event is emitted prior to removing old updates from the history. This way the client can implement more dramatic compaction, making their own tradeoffs between performance, replayability, and speed.
 
-####`Gossip.history.write(key, value, source_id, version)`####
+#### `Gossip.history.write(key, value, source_id, version)` ####
 
 Write a new update to the history. The update is recorded into
 `Gossip.history.memory`, an array of updates, which is then sorted via `sort`
@@ -226,7 +223,7 @@ event is emitted with the update as its argument. This event is emitted to allow
 the client to take action prior to pruning the `memory` array to
 `max_history`'s length.
 
-####`Gossip.history.news(id, version)` -> [`Array updates`](#updates)####
+#### `Gossip.history.news(id, version)` -> [`Array updates`](#updates) ####
 
 Returns an array of `update`s which came from a source with unique identifier
 matching `id`, and which occurred after `version`.
