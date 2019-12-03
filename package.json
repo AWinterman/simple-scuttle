@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "tap"
+    "test": "tap",
+    "posttest": "mkdir -p ./coverage && nyc report --reporter=text-lcov > ./coverage/lcov.info"
   },
   "repository": {
     "type": "git",
