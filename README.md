@@ -63,7 +63,7 @@ with some sample defaults.
 ### `require('simple-scuttle').Gossip` ###
 
 ```js
-Gossip(String id, Object config) -> gossip
+Gossip(String id, Object config, Object state) -> gossip
 ```
  
 - `id`: The unique identifier for each `Gossip` instance.  
@@ -82,6 +82,7 @@ Gossip(String id, Object config) -> gossip
     and will be called by Array.sort under the hood. This function is used to
     order updates when another Gossip instance requests updates more recent
     than a given version number.
+- `state`: if you would like to pass a specific object to the Gossip to use as its key value store, perhaps a [proxy object](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Meta_programming) which you have overrided to be backed by a database.
 
 # Admonition #
 
