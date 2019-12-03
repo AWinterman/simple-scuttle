@@ -4,8 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "tap test/",
-    "posttest": "tap --coverage-report=text-lcov | codecov"
+    "test": "tap"
   },
   "repository": {
     "type": "git",
