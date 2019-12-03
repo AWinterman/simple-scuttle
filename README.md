@@ -1,4 +1,5 @@
 # Simple-Scuttle #
+[![Coverage Status](https://coveralls.io/repos/github/AWinterman/simple-scuttle/badge.svg?branch=master)](https://coveralls.io/github/AWinterman/simple-scuttle?branch=master)
 
 [![Scuttlebutt](https://f.cloud.github.com/assets/37303/1836776/ce8b825c-740e-11e3-8a89-70861d073c03.png)](https://github.com/chrisdickinson/)
 
