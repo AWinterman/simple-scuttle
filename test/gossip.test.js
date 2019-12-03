@@ -47,11 +47,6 @@ test(
   , everyone_their_own.bind(null, 1, 30)
 )
 
-test(
-    'can gossip with self', 
-    trivial_case
-)
-
 function verify_mtu(assert) {
   var new_config = Object.create(config)
   new_config.mtu = 1
