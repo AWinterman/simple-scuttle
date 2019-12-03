@@ -23,3 +23,10 @@ jobs:
         npm test
       env:
         CI: true
+    - uses: codecov/codecov-action@v1
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }} #required
+        file: ./coverage.xml #optional
+        flags: unittests #optional
+        name: codecov-umbrella #optional
+        yml: ./codecov.yml #optional
